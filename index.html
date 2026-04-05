@@ -4,22 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#6366f1">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>WebPOS - Dashboard</title>
-  
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- CSS -->
   <link rel="stylesheet" href="css/style.css">
-  
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
@@ -27,53 +17,29 @@
 </head>
 <body>
   <div class="app-container">
-    <!-- Sidebar Navigation -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="logo-container">
-          <div class="logo-icon">
-            <i class="fas fa-cash-register"></i>
-          </div>
+          <div class="logo-icon"><i class="fas fa-cash-register"></i></div>
           <span class="logo-text">WebPOS</span>
         </div>
       </div>
-      
-      <button class="menu-toggle" id="menuToggle" title="Toggle Sidebar">
-        <i class="fas fa-chevron-left"></i>
-      </button>
-      
-      <!-- Search Menu -->
+      <button class="menu-toggle" id="menuToggle" title="Toggle Sidebar"><i class="fas fa-chevron-left"></i></button>
       <div class="sidebar-search">
         <div class="search-input-wrapper">
           <i class="fas fa-search"></i>
           <input type="text" class="search-input" id="menuSearch" placeholder="Cari menu...">
         </div>
       </div>
-      
-      <!-- Navigation -->
       <nav class="sidebar-nav">
-        <!-- Utama Section -->
         <div class="nav-section">
           <div class="nav-section-title">Utama</div>
           <ul class="nav-menu">
-            <li class="nav-item">
-              <a href="index.html" class="nav-link active" data-menu="dashboard">
-                <i class="fas fa-home"></i>
-                <span>Dashboard</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="pages/kasir.html" class="nav-link" data-menu="kasir">
-                <i class="fas fa-cash-register"></i>
-                <span>Kasir</span>
-              </a>
-            </li>
+            <li class="nav-item"><a href="index.html" class="nav-link active" data-menu="dashboard"><i class="fas fa-home"></i><span>Dashboard</span></a></li>
+            <li class="nav-item"><a href="pages/kasir.html" class="nav-link" data-menu="kasir"><i class="fas fa-cash-register"></i><span>Kasir</span></a></li>
             <li class="nav-item nav-dropdown" data-dropdown>
               <div class="nav-link nav-dropdown-toggle" data-menu="produk">
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                  <i class="fas fa-box"></i>
-                  <span>Produk</span>
-                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;"><i class="fas fa-box"></i><span>Produk</span></div>
                 <i class="fas fa-chevron-down dropdown-arrow"></i>
               </div>
               <ul class="nav-submenu">
@@ -84,29 +50,14 @@
             </li>
           </ul>
         </div>
-        
-        <!-- Transaksi Section -->
         <div class="nav-section">
           <div class="nav-section-title">Transaksi</div>
           <ul class="nav-menu">
-            <li class="nav-item">
-              <a href="pages/riwayat.html" class="nav-link" data-menu="riwayat">
-                <i class="fas fa-history"></i>
-                <span>Riwayat Transaksi</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="pages/pembelian.html" class="nav-link" data-menu="pembelian">
-                <i class="fas fa-shopping-cart"></i>
-                <span>Pembelian</span>
-              </a>
-            </li>
+            <li class="nav-item"><a href="pages/riwayat.html" class="nav-link" data-menu="riwayat"><i class="fas fa-history"></i><span>Riwayat Transaksi</span></a></li>
+            <li class="nav-item"><a href="pages/pembelian.html" class="nav-link" data-menu="pembelian"><i class="fas fa-shopping-cart"></i><span>Pembelian</span></a></li>
             <li class="nav-item nav-dropdown" data-dropdown>
               <div class="nav-link nav-dropdown-toggle" data-menu="kas">
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                  <i class="fas fa-wallet"></i>
-                  <span>Kas Management</span>
-                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;"><i class="fas fa-wallet"></i><span>Kas Management</span></div>
                 <i class="fas fa-chevron-down dropdown-arrow"></i>
               </div>
               <ul class="nav-submenu">
@@ -115,49 +66,19 @@
                 <li><a href="pages/kas-laporan.html" class="nav-link"><span>Laporan Kas</span></a></li>
               </ul>
             </li>
-            <li class="nav-item">
-              <a href="pages/hutang.html" class="nav-link" data-menu="hutang">
-                <i class="fas fa-hand-holding-usd"></i>
-                <span>Hutang Piutang</span>
-              </a>
-            </li>
+            <li class="nav-item"><a href="pages/hutang.html" class="nav-link" data-menu="hutang"><i class="fas fa-hand-holding-usd"></i><span>Hutang Piutang</span></a></li>
           </ul>
         </div>
-        
-        <!-- Lainnya Section -->
         <div class="nav-section">
           <div class="nav-section-title">Lainnya</div>
           <ul class="nav-menu">
-            <li class="nav-item">
-              <a href="pages/modal.html" class="nav-link" data-menu="modal">
-                <i class="fas fa-coins"></i>
-                <span>Modal Harian</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="pages/pelanggan.html" class="nav-link" data-menu="pelanggan">
-                <i class="fas fa-users"></i>
-                <span>Data Pelanggan</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="pages/laporan.html" class="nav-link" data-menu="laporan">
-                <i class="fas fa-chart-bar"></i>
-                <span>Laporan</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a href="pages/telegram.html" class="nav-link" data-menu="telegram">
-                <i class="fab fa-telegram"></i>
-                <span>Saldo Telegram</span>
-              </a>
-            </li>
+            <li class="nav-item"><a href="pages/modal.html" class="nav-link" data-menu="modal"><i class="fas fa-coins"></i><span>Modal Harian</span></a></li>
+            <li class="nav-item"><a href="pages/pelanggan.html" class="nav-link" data-menu="pelanggan"><i class="fas fa-users"></i><span>Data Pelanggan</span></a></li>
+            <li class="nav-item"><a href="pages/laporan.html" class="nav-link" data-menu="laporan"><i class="fas fa-chart-bar"></i><span>Laporan</span></a></li>
+            <li class="nav-item"><a href="pages/telegram.html" class="nav-link" data-menu="telegram"><i class="fab fa-telegram"></i><span>Saldo Telegram</span></a></li>
             <li class="nav-item nav-dropdown" data-dropdown>
               <div class="nav-link nav-dropdown-toggle" data-menu="pengaturan">
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                  <i class="fas fa-cog"></i>
-                  <span>Pengaturan</span>
-                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;"><i class="fas fa-cog"></i><span>Pengaturan</span></div>
                 <i class="fas fa-chevron-down dropdown-arrow"></i>
               </div>
               <ul class="nav-submenu">
@@ -170,13 +91,9 @@
           </ul>
         </div>
       </nav>
-      
-      <!-- User Profile -->
       <div class="sidebar-footer">
         <div class="user-profile" id="userProfile">
-          <div class="user-avatar" id="userAvatar">
-            <i class="fas fa-user"></i>
-          </div>
+          <div class="user-avatar" id="userAvatar"><i class="fas fa-user"></i></div>
           <div class="user-info">
             <div class="user-name" id="userName">Loading...</div>
             <div class="user-role" id="userRole">-</div>
@@ -184,82 +101,32 @@
         </div>
       </div>
     </aside>
-    
-    <!-- Main Content -->
+
     <main class="main-content">
-      <!-- Header -->
       <header class="main-header">
         <div class="header-left">
-          <button class="btn-icon d-md-none" id="mobileMenuToggle">
-            <i class="fas fa-bars"></i>
-          </button>
+          <button class="btn-icon d-md-none" id="mobileMenuToggle"><i class="fas fa-bars"></i></button>
           <h1 class="header-title">Dashboard</h1>
         </div>
-        
-        <!-- Header Stats (Kasir Stats) -->
         <div class="header-stats" id="headerStats">
-          <div class="stat-item">
-            <span class="stat-label">Kas di Tangan</span>
-            <span class="stat-value" id="kasDitangan">Rp 0</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Total Penjualan</span>
-            <span class="stat-value positive" id="totalPenjualan">Rp 0</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Top Up</span>
-            <span class="stat-value" id="totalTopup">Rp 0</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Tarik Tunai</span>
-            <span class="stat-value negative" id="totalTarik">Rp 0</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Kas Masuk</span>
-            <span class="stat-value positive" id="kasMasuk">Rp 0</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Kas Keluar</span>
-            <span class="stat-value negative" id="kasKeluar">Rp 0</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-label">Laba</span>
-            <span class="stat-value positive" id="totalLaba">Rp 0</span>
-          </div>
+          <div class="stat-item"><span class="stat-label">Kas di Tangan</span><span class="stat-value" id="kasDitangan">Rp 0</span></div>
+          <div class="stat-item"><span class="stat-label">Total Penjualan</span><span class="stat-value positive" id="totalPenjualan">Rp 0</span></div>
+          <div class="stat-item"><span class="stat-label">Top Up</span><span class="stat-value" id="totalTopup">Rp 0</span></div>
+          <div class="stat-item"><span class="stat-label">Tarik Tunai</span><span class="stat-value negative" id="totalTarik">Rp 0</span></div>
+          <div class="stat-item"><span class="stat-label">Kas Masuk</span><span class="stat-value positive" id="kasMasuk">Rp 0</span></div>
+          <div class="stat-item"><span class="stat-label">Kas Keluar</span><span class="stat-value negative" id="kasKeluar">Rp 0</span></div>
+          <div class="stat-item"><span class="stat-label">Laba</span><span class="stat-value positive" id="totalLaba">Rp 0</span></div>
         </div>
-        
         <div class="header-actions">
-          <div class="status-indicator closed" id="shiftStatus">
-            <span class="status-dot"></span>
-            <span id="shiftText">Tutup</span>
-          </div>
-          
-          <button class="btn-icon" id="btnCloud" title="Sync Cloud">
-            <i class="fas fa-cloud"></i>
-          </button>
-          
-          <button class="btn-icon" id="btnTheme" title="Toggle Dark Mode">
-            <i class="fas fa-moon"></i>
-          </button>
-          
-          <button class="btn-icon" id="btnSettings" title="Settings">
-            <i class="fas fa-cog"></i>
-          </button>
-          
-          <button class="btn-icon" id="btnLogout" title="Logout">
-            <i class="fas fa-sign-out-alt"></i>
-          </button>
+          <div class="status-indicator closed" id="shiftStatus"><span class="status-dot"></span><span id="shiftText">Tutup</span></div>
+          <button class="btn-icon" id="btnCloud" title="Sync Cloud"><i class="fas fa-cloud"></i></button>
+          <button class="btn-icon" id="btnTheme" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
+          <button class="btn-icon" id="btnSettings" title="Settings"><i class="fas fa-cog"></i></button>
+          <button class="btn-icon" id="btnLogout" title="Logout"><i class="fas fa-sign-out-alt"></i></button>
         </div>
       </header>
-      
-      <!-- Mobile Stats Toggle -->
-      <div class="header-stats mobile-visible hidden" id="mobileStats">
-        <!-- Same stats as header for mobile -->
-      </div>
-      
-      <!-- Page Content -->
+
       <div class="page-content">
-        <!-- Quick Stats Cards -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-4">
           <div class="card glass-card">
             <div class="card-body">
@@ -268,13 +135,10 @@
                   <p class="text-muted" style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Modal Awal</p>
                   <h3 class="mt-2" style="font-size: 1.5rem; font-weight: 700;" id="modalAwal">Rp 0</h3>
                 </div>
-                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;">
-                  <i class="fas fa-coins"></i>
-                </div>
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #6366f1, #8b5cf6); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;"><i class="fas fa-coins"></i></div>
               </div>
             </div>
           </div>
-          
           <div class="card glass-card">
             <div class="card-body">
               <div class="flex items-center justify-between">
@@ -282,13 +146,10 @@
                   <p class="text-muted" style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Total Transaksi</p>
                   <h3 class="mt-2" style="font-size: 1.5rem; font-weight: 700;" id="totalTransaksi">0</h3>
                 </div>
-                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;">
-                  <i class="fas fa-receipt"></i>
-                </div>
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;"><i class="fas fa-receipt"></i></div>
               </div>
             </div>
           </div>
-          
           <div class="card glass-card">
             <div class="card-body">
               <div class="flex items-center justify-between">
@@ -296,13 +157,10 @@
                   <p class="text-muted" style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Shift</p>
                   <h3 class="mt-2" style="font-size: 1.5rem; font-weight: 700;" id="shiftInfo">-</h3>
                 </div>
-                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;">
-                  <i class="fas fa-clock"></i>
-                </div>
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;"><i class="fas fa-clock"></i></div>
               </div>
             </div>
           </div>
-          
           <div class="card glass-card">
             <div class="card-body">
               <div class="flex items-center justify-between">
@@ -310,147 +168,69 @@
                   <p class="text-muted" style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase;">Total Laba</p>
                   <h3 class="mt-2" style="font-size: 1.5rem; font-weight: 700; color: var(--success);" id="cardLaba">Rp 0</h3>
                 </div>
-                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #ec4899, #db2777); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;">
-                  <i class="fas fa-chart-line"></i>
-                </div>
+                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #ec4899, #db2777); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.25rem;"><i class="fas fa-chart-line"></i></div>
               </div>
             </div>
           </div>
         </div>
-        
-        <!-- Main Dashboard Content -->
+
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <!-- Left Column -->
           <div class="lg:col-span-2">
-            <!-- Recent Transactions -->
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">
-                  <i class="fas fa-history"></i>
-                  Transaksi Terbaru
-                </h3>
-                <a href="pages/riwayat.html" class="btn btn-sm btn-ghost">
-                  Lihat Semua <i class="fas fa-arrow-right" style="margin-left: 0.5rem;"></i>
-                </a>
+                <h3 class="card-title"><i class="fas fa-history"></i>Transaksi Terbaru</h3>
+                <a href="pages/riwayat.html" class="btn btn-sm btn-ghost">Lihat Semua <i class="fas fa-arrow-right" style="margin-left: 0.5rem;"></i></a>
               </div>
               <div class="card-body">
                 <div class="table-container">
                   <table class="table" id="recentTransactionsTable">
                     <thead>
-                      <tr>
-                        <th>No</th>
-                        <th>Waktu</th>
-                        <th>Tipe</th>
-                        <th>Total</th>
-                        <th>Status</th>
-                      </tr>
+                      <tr><th>No</th><th>Waktu</th><th>Tipe</th><th>Total</th><th>Status</th></tr>
                     </thead>
                     <tbody id="recentTransactionsBody">
-                      <tr>
-                        <td colspan="5" class="text-center" style="padding: 2rem;">
-                          <div class="empty-state">
-                            <div class="empty-state-icon">
-                              <i class="fas fa-receipt"></i>
-                            </div>
-                            <p class="empty-state-text">Belum ada transaksi hari ini</p>
-                          </div>
-                        </td>
-                      </tr>
+                      <tr><td colspan="5" class="text-center" style="padding: 2rem;"><div class="empty-state"><div class="empty-state-icon"><i class="fas fa-receipt"></i></div><p class="empty-state-text">Belum ada transaksi hari ini</p></div></td></tr>
                     </tbody>
                   </table>
                 </div>
               </div>
             </div>
-            
-            <!-- Sales Chart -->
             <div class="card mt-4">
               <div class="card-header">
-                <h3 class="card-title">
-                  <i class="fas fa-chart-bar"></i>
-                  Grafik Penjualan
-                </h3>
-                <select class="form-select" style="width: auto; font-size: 0.875rem;" id="chartPeriod">
-                  <option value="today">Hari Ini</option>
-                  <option value="week">Minggu Ini</option>
-                  <option value="month">Bulan Ini</option>
-                </select>
+                <h3 class="card-title"><i class="fas fa-chart-bar"></i>Grafik Penjualan</h3>
+                <select class="form-select" style="width: auto; font-size: 0.875rem;" id="chartPeriod"><option value="today">Hari Ini</option><option value="week">Minggu Ini</option><option value="month">Bulan Ini</option></select>
               </div>
               <div class="card-body">
-                <div id="salesChart" style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border-radius: var(--radius-lg);">
-                  <p class="text-muted">Grafik akan ditampilkan di sini</p>
-                </div>
+                <div id="salesChart" style="height: 300px; display: flex; align-items: center; justify-content: center; background: var(--bg-secondary); border-radius: var(--radius-lg);"><p class="text-muted">Grafik akan ditampilkan di sini</p></div>
               </div>
             </div>
           </div>
-          
-          <!-- Right Column -->
           <div>
-            <!-- Low Stock Alert -->
             <div class="card">
               <div class="card-header">
-                <h3 class="card-title">
-                  <i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>
-                  Stok Menipis
-                </h3>
+                <h3 class="card-title"><i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i>Stok Menipis</h3>
               </div>
               <div class="card-body">
-                <div id="lowStockList">
-                  <div class="empty-state">
-                    <div class="empty-state-icon" style="width: 60px; height: 60px; font-size: 1.5rem;">
-                      <i class="fas fa-box"></i>
-                    </div>
-                    <p class="empty-state-text">Semua stok aman</p>
-                  </div>
-                </div>
+                <div id="lowStockList"><div class="empty-state"><div class="empty-state-icon" style="width: 60px; height: 60px; font-size: 1.5rem;"><i class="fas fa-box"></i></div><p class="empty-state-text">Semua stok aman</p></div></div>
               </div>
             </div>
-            
-            <!-- Top Products -->
             <div class="card mt-4">
               <div class="card-header">
-                <h3 class="card-title">
-                  <i class="fas fa-star" style="color: var(--warning);"></i>
-                  Produk Terlaris
-                </h3>
+                <h3 class="card-title"><i class="fas fa-star" style="color: var(--warning);"></i>Produk Terlaris</h3>
               </div>
               <div class="card-body">
-                <div id="topProductsList">
-                  <div class="empty-state">
-                    <div class="empty-state-icon" style="width: 60px; height: 60px; font-size: 1.5rem;">
-                      <i class="fas fa-trophy"></i>
-                    </div>
-                    <p class="empty-state-text">Belum ada data penjualan</p>
-                  </div>
-                </div>
+                <div id="topProductsList"><div class="empty-state"><div class="empty-state-icon" style="width: 60px; height: 60px; font-size: 1.5rem;"><i class="fas fa-trophy"></i></div><p class="empty-state-text">Belum ada data penjualan</p></div></div>
               </div>
             </div>
-            
-            <!-- Quick Actions -->
             <div class="card mt-4">
               <div class="card-header">
-                <h3 class="card-title">
-                  <i class="fas fa-bolt" style="color: var(--primary);"></i>
-                  Aksi Cepat
-                </h3>
+                <h3 class="card-title"><i class="fas fa-bolt" style="color: var(--primary);"></i>Aksi Cepat</h3>
               </div>
               <div class="card-body">
                 <div class="grid grid-cols-2 gap-2">
-                  <a href="pages/kasir.html" class="btn btn-primary btn-block" style="flex-direction: column; padding: 1rem;">
-                    <i class="fas fa-cash-register" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
-                    <span>Buka Kasir</span>
-                  </a>
-                  <a href="pages/produk.html" class="btn btn-secondary btn-block" style="flex-direction: column; padding: 1rem;">
-                    <i class="fas fa-plus" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
-                    <span>Tambah Produk</span>
-                  </a>
-                  <a href="pages/modal.html" class="btn btn-secondary btn-block" style="flex-direction: column; padding: 1rem;">
-                    <i class="fas fa-coins" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
-                    <span>Set Modal</span>
-                  </a>
-                  <button class="btn btn-secondary btn-block" id="btnCloseShift" style="flex-direction: column; padding: 1rem;">
-                    <i class="fas fa-store-slash" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
-                    <span>Tutup Shift</span>
-                  </button>
+                  <a href="pages/kasir.html" class="btn btn-primary btn-block" style="flex-direction: column; padding: 1rem;"><i class="fas fa-cash-register" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i><span>Buka Kasir</span></a>
+                  <a href="pages/produk.html" class="btn btn-secondary btn-block" style="flex-direction: column; padding: 1rem;"><i class="fas fa-plus" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i><span>Tambah Produk</span></a>
+                  <a href="pages/modal.html" class="btn btn-secondary btn-block" style="flex-direction: column; padding: 1rem;"><i class="fas fa-coins" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i><span>Set Modal</span></a>
+                  <button class="btn btn-secondary btn-block" id="btnCloseShift" style="flex-direction: column; padding: 1rem;"><i class="fas fa-store-slash" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i><span>Tutup Shift</span></button>
                 </div>
               </div>
             </div>
@@ -458,52 +238,27 @@
         </div>
       </div>
     </main>
-    
-    <!-- Mobile Bottom Navigation -->
+
     <nav class="mobile-nav d-md-none">
-      <a href="index.html" class="mobile-nav-item active">
-        <i class="fas fa-home"></i>
-        <span>Dashboard</span>
-      </a>
-      <a href="pages/kasir.html" class="mobile-nav-item">
-        <i class="fas fa-cash-register"></i>
-        <span>Kasir</span>
-      </a>
-      <a href="pages/produk.html" class="mobile-nav-item">
-        <i class="fas fa-box"></i>
-        <span>Produk</span>
-      </a>
-      <a href="pages/riwayat.html" class="mobile-nav-item">
-        <i class="fas fa-history"></i>
-        <span>Riwayat</span>
-      </a>
-      <a href="pages/setting.html" class="mobile-nav-item">
-        <i class="fas fa-cog"></i>
-        <span>Setting</span>
-      </a>
+      <a href="index.html" class="mobile-nav-item active"><i class="fas fa-home"></i><span>Dashboard</span></a>
+      <a href="pages/kasir.html" class="mobile-nav-item"><i class="fas fa-cash-register"></i><span>Kasir</span></a>
+      <a href="pages/produk.html" class="mobile-nav-item"><i class="fas fa-box"></i><span>Produk</span></a>
+      <a href="pages/riwayat.html" class="mobile-nav-item"><i class="fas fa-history"></i><span>Riwayat</span></a>
+      <a href="pages/setting.html" class="mobile-nav-item"><i class="fas fa-cog"></i><span>Setting</span></a>
     </nav>
   </div>
-  
-  <!-- Loading Overlay -->
+
   <div class="loading-overlay" id="loadingOverlay">
     <div class="spinner"></div>
     <p style="margin-top: 1rem; color: var(--text-secondary);">Loading...</p>
   </div>
-  
-  <!-- Toast Container -->
+
   <div class="toast-container" id="toastContainer"></div>
-  
-  <!-- Scripts -->
+
   <script src="js/core/firebase-config.js"></script>
   <script src="js/core/utils.js"></script>
   <script src="js/core/auth.js"></script>
   <script src="js/modules/dashboard.js"></script>
-  
-  <script>
-    // Initialize Dashboard
-    document.addEventListener('DOMContentLoaded', () => {
-      Dashboard.init();
-    });
-  </script>
+  <script>document.addEventListener('DOMContentLoaded', function() { Dashboard.init(); });</script>
 </body>
 </html>
