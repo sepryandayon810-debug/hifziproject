@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebPOS - Register</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .bg-shapes {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .shape {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.6;
+      animation: float 20s infinite ease-in-out;
+    }
+    .shape-1 {
+      width: 400px; height: 400px;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      top: -100px; left: -100px;
+    }
+    .shape-2 {
+      width: 300px; height: 300px;
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      bottom: -50px; right: -50px;
+      animation-delay: -5s;
+    }
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.9); }
+    }
+    .register-container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+    }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      padding: 2.5rem;
+      animation: slideUp 0.6s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .logo-section {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .logo-icon {
+      width: 80px; height: 80px;
+      background: linear-gradient(135deg, #6366f1, #ec4899);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1rem;
+      box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+    }
+    .logo-icon i { font-size: 2.5rem; color: white; }
+    .logo-title { font-size: 1.75rem; font-weight: 800; color: white; margin-bottom: 0.25rem; }
+    .logo-subtitle { font-size: 0.875rem; color: rgba(255, 255, 255, 0.8); }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 0.5rem;
+    }
+    .input-wrapper { position: relative; }
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.6);
+    }
+    .form-input {
+      width: 100%;
+      padding: 0.875rem 1rem 0.875rem 2.75rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      color: white;
+      font-size: 0.875rem;
+      font-family: inherit;
+    }
+    .form-input::placeholder { color: rgba(255, 255, 255, 0.5); }
+    .form-input:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.4);
+    }
+    .form-select {
+      width: 100%;
+      padding: 0.875rem 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      color: white;
+      font-size: 0.875rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .form-select option { background: #333; }
+    .btn {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, #6366f1, #4f46e5);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5); }
+    .btn:disabled { opacity: 0.7; cursor: not-allowed; }
+    .login-link {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.875rem;
+    }
+    .login-link a { color: white; font-weight: 600; text-decoration: none; }
+    .alert {
+      padding: 0.875rem 1rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .alert-error { background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.3); color: #fecaca; }
+    .alert-success { background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.3); color: #a7f3d0; }
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="bg-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+  </div>
+
+  <div class="register-container">
+    <div class="glass-card">
+      <div class="logo-section">
+        <div class="logo-icon"><i class="fas fa-user-plus"></i></div>
+        <h1 class="logo-title">Daftar Akun</h1>
+        <p class="logo-subtitle">Buat akun WebPOS baru</p>
+      </div>
+
+      <div id="alertContainer"></div>
+
+      <form id="registerForm">
+        <div class="form-group">
+          <label class="form-label">Nama Lengkap</label>
+          <div class="input-wrapper">
+            <i class="fas fa-user input-icon"></i>
+            <input type="text" class="form-input" id="name" placeholder="Masukkan nama lengkap" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <div class="input-wrapper">
+            <i class="fas fa-envelope input-icon"></i>
+            <input type="email" class="form-input" id="email" placeholder="Masukkan email" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrapper">
+            <i class="fas fa-lock input-icon"></i>
+            <input type="password" class="form-input" id="password" placeholder="Minimal 6 karakter" required minlength="6">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Role</label>
+          <select class="form-select" id="role" required>
+            <option value="kasir">Kasir</option>
+            <option value="admin">Admin</option>
+            <option value="owner">Owner</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn" id="registerBtn">
+          <i class="fas fa-user-plus"></i>
+          <span>Daftar</span>
+        </button>
+      </form>
+
+      <div class="login-link">
+        Sudah punya akun? <a href="login.html">Login sekarang</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyD9XyvgofyFyX5aUMARcA_GO-N2Tcw725Q",
+      authDomain: "goodhifzicell.firebaseapp.com",
+      databaseURL: "https://goodhifzicell-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "goodhifzicell",
+      storageBucket: "goodhifzicell.firebasestorage.app",
+      messagingSenderId: "306835710868",
+      appId: "1:306835710868:web:817551e6c8c19c8eca6581"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    const form = document.getElementById('registerForm');
+    const btn = document.getElementById('registerBtn');
+    const alertContainer = document.getElementById('alertContainer');
+
+    function showAlert(message, type = 'error') {
+      alertContainer.innerHTML = `<div class="alert alert-${type}"><i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i><span>${message}</span></div>`;
+      setTimeout(() => alertContainer.innerHTML = '', 5000);
+    }
+
+    function setLoading(loading) {
+      if (loading) {
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner"></div><span>Mendaftar...</span>';
+      } else {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-user-plus"></i><span>Daftar</span>';
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const role = document.getElementById('role').value;
+
+      setLoading(true);
+
+      try {
+        const result = await auth.createUserWithEmailAndPassword(email, password);
+        
+        await database.ref(`users/${result.user.uid}`).set({
+          name, email, role,
+          createdAt: firebase.database.ServerValue.TIMESTAMP,
+          status: 'active'
+        });
+
+        showAlert('Akun berhasil dibuat! Mengalihkan...', 'success');
+        
+        setTimeout(() => {
+          window.location.href = 'login.html';
+        }, 1500);
+
+      } catch (error) {
+        let message = 'Pendaftaran gagal';
+        switch(error.code) {
+          case 'auth/email-already-in-use': message = 'Email sudah terdaftar'; break;
+          case 'auth/invalid-email': message = 'Email tidak valid'; break;
+          case 'auth/weak-password': message = 'Password terlalu lemah'; break;
+        }
+        showAlert(message);
+        setLoading(false);
+      }
+    });
+  </script>
+</body>
+</html>
+'''
+
+with open('/mnt/kimi/output/webpos/register.html', 'w', encoding='utf-8') as f:
+    f.write(register_html)
+
+# 2. Create placeholder files for other modules
+placeholder_files = [
+    'js/modules/kasir/keranjang.js',
+    'js/modules/kasir/transaksi-manual.js',
+    'js/modules/kasir/topup.js',
+    'js/modules/kasir/tarik-tunai.js',
+    'js/modules/kasir/edit-harga.js',
+    'js/modules/kasir/uang-pas.js',
+    'js/modules/kasir/pencarian-produk.js',
+    'js/modules/produk/produk-kategori.js',
+    'js/modules/produk/produk-stok.js',
+    'js/modules/pembelian/pembelian-main.js',
+    'js/modules/riwayat/riwayat-main.js',
+    'js/modules/modal/modal-main.js',
+    'js/modules/kas/kas-main.js',
+    'js/modules/kas/kas-masuk.js',
+    'js/modules/kas/kas-keluar.js',
+    'js/modules/hutang/hutang-main.js',
+    'js/modules/laporan/laporan-main.js',
+    'js/modules/telegram/telegram-main.js',
+    'js/modules/pelanggan/pelanggan-main.js',
+    'js/modules/user/user-main.js',
+    'js/modules/setting/setting-main.js',
+    'js/modules/printer/printer-main.js',
+    'js/modules/printer/print-receipt.js',
+    'pages/produk-kategori.html',
+    'pages/produk-stok.html',
+    'pages/pembelian.html',
+    'pages/riwayat.html',
+    'pages/modal.html',
+    'pages/kas-masuk.html',
+    'pages/kas-keluar.html',
+    'pages/kas-laporan.html',
+    'pages/hutang.html',
+    'pages/laporan.html',
+    'pages/telegram.html',
+    'pages/pelanggan.html',
+    'pages/user.html',
+    'pages/setting.html',
+    'pages/printer.html',
+    'pages/reset.html',
+]
+
+for file_path in placeholder_files:
+    full_path = f'/mnt/kimi/output/webpos/{file_path}'
+    os.makedirs(os.path.dirname(full_path), exist_ok=True)
+    
+    if file_path.endswith('.js'):
+        content = f'''/**
+ * WebPOS {os.path.basename(file_path).replace('.js', '').replace('-', ' ').title()} Module
+ * Auto-generated placeholder
+ */
+
+const {os.path.basename(file_path).replace('.js', '').replace('-', '')} = {{
+  init: () => {{
+    console.log('{os.path.basename(file_path)} initialized');
+  }}
+}};
+
+if (typeof module !== 'undefined' && module.exports) {{
+  module.exports = {os.path.basename(file_path).replace('.js', '').replace('-', '')};
+}}
+'''
+    else:
+        content = f'''<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebPOS - {os.path.basename(file_path).replace('.html', '').replace('-', ' ').title()}</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <main class="main-content">
+      <div class="page-content">
+        <div class="card">
+          <div class="card-body text-center" style="padding: 4rem;">
+            <i class="fas fa-tools" style="font-size: 4rem; color: var(--primary); margin-bottom: 1rem;"></i>
+            <h2>{os.path.basename(file_path).replace('.html', '').replace('-', ' ').title()}</h2>
+            <p class="text-muted">Modul ini sedang dalam pengembangan</p>
+            <a href="../index.html" class="btn btn-primary mt-4">Kembali ke Dashboard</a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
