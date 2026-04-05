@@ -125,7 +125,7 @@
       font-family: inherit;
       cursor: pointer;
     }
-    .form-select option { background: #333; }
+    .form-select option { background: #333; color: white; }
     .btn {
       width: 100%;
       padding: 1rem;
@@ -239,7 +239,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
   <script>
-    const firebaseConfig = {
+    var firebaseConfig = {
       apiKey: "AIzaSyD9XyvgofyFyX5aUMARcA_GO-N2Tcw725Q",
       authDomain: "goodhifzicell.firebaseapp.com",
       databaseURL: "https://goodhifzicell-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -250,16 +250,16 @@
     };
 
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const database = firebase.database();
+    var auth = firebase.auth();
+    var database = firebase.database();
 
-    const form = document.getElementById('registerForm');
-    const btn = document.getElementById('registerBtn');
-    const alertContainer = document.getElementById('alertContainer');
+    var form = document.getElementById('registerForm');
+    var btn = document.getElementById('registerBtn');
+    var alertContainer = document.getElementById('alertContainer');
 
-    function showAlert(message, type = 'error') {
-      alertContainer.innerHTML = `<div class="alert alert-${type}"><i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'}"></i><span>${message}</span></div>`;
-      setTimeout(() => alertContainer.innerHTML = '', 5000);
+    function showAlert(message, type) {
+      alertContainer.innerHTML = '<div class="alert alert-' + type + '"><i class="fas fa-' + (type === 'error' ? 'exclamation-circle' : 'check-circle') + '"></i><span>' + message + '</span></div>';
+      setTimeout(function() { alertContainer.innerHTML = ''; }, 5000);
     }
 
     function setLoading(loading) {
@@ -272,136 +272,41 @@
       }
     }
 
-    form.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', function(e) {
       e.preventDefault();
       
-      const name = document.getElementById('name').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('password').value;
-      const role = document.getElementById('role').value;
+      var name = document.getElementById('name').value.trim();
+      var email = document.getElementById('email').value.trim();
+      var password = document.getElementById('password').value;
+      var role = document.getElementById('role').value;
 
       setLoading(true);
 
-      try {
-        const result = await auth.createUserWithEmailAndPassword(email, password);
-        
-        await database.ref(`users/${result.user.uid}`).set({
-          name, email, role,
-          createdAt: firebase.database.ServerValue.TIMESTAMP,
-          status: 'active'
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(function(result) {
+          return database.ref('users/' + result.user.uid).set({
+            name: name,
+            email: email,
+            role: role,
+            createdAt: firebase.database.ServerValue.TIMESTAMP,
+            status: 'active'
+          });
+        })
+        .then(function() {
+          showAlert('Akun berhasil dibuat! Mengalihkan...', 'success');
+          setTimeout(function() {
+            window.location.href = 'login.html';
+          }, 1500);
+        })
+        .catch(function(error) {
+          var message = 'Pendaftaran gagal';
+          if (error.code === 'auth/email-already-in-use') message = 'Email sudah terdaftar';
+          else if (error.code === 'auth/invalid-email') message = 'Email tidak valid';
+          else if (error.code === 'auth/weak-password') message = 'Password terlalu lemah';
+          showAlert(message, 'error');
+          setLoading(false);
         });
-
-        showAlert('Akun berhasil dibuat! Mengalihkan...', 'success');
-        
-        setTimeout(() => {
-          window.location.href = 'login.html';
-        }, 1500);
-
-      } catch (error) {
-        let message = 'Pendaftaran gagal';
-        switch(error.code) {
-          case 'auth/email-already-in-use': message = 'Email sudah terdaftar'; break;
-          case 'auth/invalid-email': message = 'Email tidak valid'; break;
-          case 'auth/weak-password': message = 'Password terlalu lemah'; break;
-        }
-        showAlert(message);
-        setLoading(false);
-      }
     });
   </script>
-</body>
-</html>
-'''
-
-with open('/mnt/kimi/output/webpos/register.html', 'w', encoding='utf-8') as f:
-    f.write(register_html)
-
-# 2. Create placeholder files for other modules
-placeholder_files = [
-    'js/modules/kasir/keranjang.js',
-    'js/modules/kasir/transaksi-manual.js',
-    'js/modules/kasir/topup.js',
-    'js/modules/kasir/tarik-tunai.js',
-    'js/modules/kasir/edit-harga.js',
-    'js/modules/kasir/uang-pas.js',
-    'js/modules/kasir/pencarian-produk.js',
-    'js/modules/produk/produk-kategori.js',
-    'js/modules/produk/produk-stok.js',
-    'js/modules/pembelian/pembelian-main.js',
-    'js/modules/riwayat/riwayat-main.js',
-    'js/modules/modal/modal-main.js',
-    'js/modules/kas/kas-main.js',
-    'js/modules/kas/kas-masuk.js',
-    'js/modules/kas/kas-keluar.js',
-    'js/modules/hutang/hutang-main.js',
-    'js/modules/laporan/laporan-main.js',
-    'js/modules/telegram/telegram-main.js',
-    'js/modules/pelanggan/pelanggan-main.js',
-    'js/modules/user/user-main.js',
-    'js/modules/setting/setting-main.js',
-    'js/modules/printer/printer-main.js',
-    'js/modules/printer/print-receipt.js',
-    'pages/produk-kategori.html',
-    'pages/produk-stok.html',
-    'pages/pembelian.html',
-    'pages/riwayat.html',
-    'pages/modal.html',
-    'pages/kas-masuk.html',
-    'pages/kas-keluar.html',
-    'pages/kas-laporan.html',
-    'pages/hutang.html',
-    'pages/laporan.html',
-    'pages/telegram.html',
-    'pages/pelanggan.html',
-    'pages/user.html',
-    'pages/setting.html',
-    'pages/printer.html',
-    'pages/reset.html',
-]
-
-for file_path in placeholder_files:
-    full_path = f'/mnt/kimi/output/webpos/{file_path}'
-    os.makedirs(os.path.dirname(full_path), exist_ok=True)
-    
-    if file_path.endswith('.js'):
-        content = f'''/**
- * WebPOS {os.path.basename(file_path).replace('.js', '').replace('-', ' ').title()} Module
- * Auto-generated placeholder
- */
-
-const {os.path.basename(file_path).replace('.js', '').replace('-', '')} = {{
-  init: () => {{
-    console.log('{os.path.basename(file_path)} initialized');
-  }}
-}};
-
-if (typeof module !== 'undefined' && module.exports) {{
-  module.exports = {os.path.basename(file_path).replace('.js', '').replace('-', '')};
-}}
-'''
-    else:
-        content = f'''<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WebPOS - {os.path.basename(file_path).replace('.html', '').replace('-', ' ').title()}</title>
-  <link rel="stylesheet" href="../css/style.css">
-</head>
-<body>
-  <div class="app-container">
-    <main class="main-content">
-      <div class="page-content">
-        <div class="card">
-          <div class="card-body text-center" style="padding: 4rem;">
-            <i class="fas fa-tools" style="font-size: 4rem; color: var(--primary); margin-bottom: 1rem;"></i>
-            <h2>{os.path.basename(file_path).replace('.html', '').replace('-', ' ').title()}</h2>
-            <p class="text-muted">Modul ini sedang dalam pengembangan</p>
-            <a href="../index.html" class="btn btn-primary mt-4">Kembali ke Dashboard</a>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
 </body>
 </html>
