@@ -1,476 +1,918 @@
 /**
- * WebPOS Keranjang (Cart) Module
- * Shopping cart functionality
+ * WebPOS Kasir Module
+ * Main cashier functionality
  */
 
-const KeranjangModule = {
+const Kasir = {
   // State
-  items: [],
-  discounts: [],
-  tax: 0,
-  serviceCharge: 0,
+  state: {
+    cart: [],
+    products: [],
+    categories: [],
+    currentCategory: 'all',
+    viewMode: 'grid',
+    paymentMethod: 'cash',
+    discount: 0,
+    tax: 0.11,
+    note: '',
+    searchQuery: ''
+  },
+
+  // DOM Elements cache
+  elements: {},
 
   /**
-   * Initialize keranjang
+   * Initialize Kasir module
    */
   init: () => {
-    KeranjangModule.render();
-    KeranjangModule.loadFromStorage();
-  },
-
-  /**
-   * Render keranjang UI
-   */
-  render: () => {
-    const container = document.getElementById('cartArea');
-    if (!container) return;
-
-    container.innerHTML = `
-      <div class="cart-header">
-        <h3><i class="fas fa-shopping-cart"></i> Keranjang</h3>
-        <button class="btn-clear" onclick="KeranjangModule.confirmClear()" title="Kosongkan">
-          <i class="fas fa-trash"></i>
-        </button>
-      </div>
-
-      <div class="cart-items" id="cartItems">
-        <div class="empty-cart">
-          <i class="fas fa-cart-plus"></i>
-          <p>Keranjang kosong</p>
-          <span>Pilih produk untuk memulai</span>
-        </div>
-      </div>
-
-      <div class="cart-summary">
-        <div class="summary-row">
-          <span>Subtotal</span>
-          <span id="cartSubtotal">Rp 0</span>
-        </div>
-        
-        <div class="summary-row discount-row" id="discountRow" style="display: none;">
-          <span>Diskon</span>
-          <span id="cartDiscount">-Rp 0</span>
-        </div>
-        
-        <div class="summary-row tax-row" id="taxRow" style="display: none;">
-          <span>Pajak</span>
-          <span id="cartTax">Rp 0</span>
-        </div>
-
-        <div class="summary-row total">
-          <span><strong>Total</strong></span>
-          <span id="cartTotal"><strong>Rp 0</strong></span>
-        </div>
-      </div>
-
-      <div class="cart-actions">
-        <button class="btn-hold" onclick="KasirModule.holdTransaction()">
-          <i class="fas fa-pause"></i> Tunda
-        </button>
-        
-        <button class="btn-checkout" onclick="KeranjangModule.openPayment()">
-          <span>Bayar</span>
-          <span id="checkoutTotal">Rp 0</span>
-        </button>
-      </div>
-
-      <!-- Quick discount buttons -->
-      <div class="quick-discounts">
-        <button onclick="KeranjangModule.applyDiscount(5000)">-5rb</button>
-        <button onclick="KeranjangModule.applyDiscount(10000)">-10rb</button>
-        <button onclick="KeranjangModule.applyDiscountPercent(10)">-10%</button>
-        <button onclick="KeranjangModule.openDiscountModal()">
-          <i class="fas fa-edit"></i>
-        </button>
-      </div>
-    `;
-  },
-
-  /**
-   * Add item to cart
-   */
-  addItem: (product) => {
-    const existing = KeranjangModule.items.find(i => i.id === product.id);
-    
-    if (existing) {
-      existing.qty += product.qty || 1;
-    } else {
-      KeranjangModule.items.push({
-        ...product,
-        qty: product.qty || 1,
-        discount: 0,
-        note: ''
-      });
-    }
-
-    KeranjangModule.saveToStorage();
-    KeranjangModule.renderItems();
-    KeranjangModule.updateSummary();
-  },
-
-  /**
-   * Remove item from cart
-   */
-  removeItem: (productId) => {
-    KeranjangModule.items = KeranjangModule.items.filter(i => i.id !== productId);
-    KeranjangModule.saveToStorage();
-    KeranjangModule.renderItems();
-    KeranjangModule.updateSummary();
-  },
-
-  /**
-   * Update item quantity
-   */
-  updateQuantity: (productId, qty) => {
-    const item = KeranjangModule.items.find(i => i.id === productId);
-    if (!item) return;
-
-    if (qty <= 0) {
-      KeranjangModule.removeItem(productId);
+    if (!Auth.isAuthenticated()) {
+      window.location.href = '../login.html';
       return;
     }
 
-    // Check stock
-    if (qty > item.stok) {
-      Utils.showToast(`Stok tidak mencukupi. Maksimal ${item.stok}`, 'warning');
-      qty = item.stok;
+    // Check if user has access
+    if (!Auth.canAccess('kasir')) {
+      Utils.showToast('Anda tidak memiliki akses ke menu ini', 'error');
+      window.location.href = '../index.html';
+      return;
     }
 
-    item.qty = qty;
-    KeranjangModule.saveToStorage();
-    KeranjangModule.renderItems();
-    KeranjangModule.updateSummary();
+    Kasir.cacheElements();
+    Kasir.setupEventListeners();
+    Kasir.setupSidebar();
+    Kasir.loadUserData();
+    Kasir.loadCategories();
+    Kasir.loadProducts();
+    Kasir.loadCartFromStorage();
+    
+    // Keyboard shortcuts
+    Kasir.setupKeyboardShortcuts();
+    
+    console.log('✅ Kasir initialized');
   },
 
   /**
-   * Edit item price
+   * Cache DOM elements
    */
-  editPrice: (productId) => {
-    const item = KeranjangModule.items.find(i => i.id === productId);
-    if (!item) return;
+  cacheElements: () => {
+    Kasir.elements = {
+      // Products
+      productsGrid: document.getElementById('productsGrid'),
+      categoryPills: document.getElementById('categoryPills'),
+      productSearch: document.getElementById('productSearch'),
+      viewBtns: document.querySelectorAll('.view-btn'),
+      
+      // Cart
+      cartItems: document.getElementById('cartItems'),
+      cartCount: document.getElementById('cartCount'),
+      subtotal: document.getElementById('subtotal'),
+      discount: document.getElementById('discount'),
+      tax: document.getElementById('tax'),
+      total: document.getElementById('total'),
+      btnClearCart: document.getElementById('btnClearCart'),
+      
+      // Payment
+      paymentModal: document.getElementById('paymentModal'),
+      paymentTotal: document.getElementById('paymentTotal'),
+      paymentAmount: document.getElementById('paymentAmount'),
+      paymentChange: document.getElementById('paymentChange'),
+      
+      // Manual input
+      manualModal: document.getElementById('manualModal'),
+      
+      // Mobile
+      cartSection: document.getElementById('cartSection'),
+      cartToggle: document.getElementById('cartToggle')
+    };
+  },
 
-    const modal = Utils.createModal(`
-      <div style="padding: 20px;">
-        <h3 style="margin-bottom: 16px;">Edit Harga - ${item.nama}</h3>
-        
-        <div class="form-group">
-          <label>Harga Jual</label>
-          <input type="number" id="editHarga" class="form-input" 
-                 value="${item.hargaJual}" min="0" step="100">
-        </div>
-        
-        <div class="form-group">
-          <label>Catatan</label>
-          <input type="text" id="editNote" class="form-input" 
-                 value="${item.note}" placeholder="Catatan untuk item ini">
-        </div>
-        
-        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
-          <button onclick="this.closest('.modal-overlay').remove()" 
-                  style="padding: 8px 16px; border: 1px solid #d1d5db; 
-                         background: white; border-radius: 6px;">
-            Batal
-          </button>
-          <button id="saveEditBtn" 
-                  style="padding: 8px 16px; background: #4f46e5; color: white; 
-                         border: none; border-radius: 6px;">
-            Simpan
-          </button>
-        </div>
-      </div>
-    `, { closable: true });
+  /**
+   * Setup event listeners
+   */
+  setupEventListeners: () => {
+    // Search
+    const searchInput = document.getElementById('productSearch');
+    if (searchInput) {
+      searchInput.addEventListener('input', Utils.debounce((e) => {
+        Kasir.state.searchQuery = e.target.value.toLowerCase();
+        Kasir.renderProducts();
+      }, 300));
+    }
 
-    document.getElementById('saveEditBtn').addEventListener('click', () => {
-      const newHarga = parseInt(document.getElementById('editHarga').value) || item.hargaJual;
-      const newNote = document.getElementById('editNote').value;
-      
-      item.hargaJual = newHarga;
-      item.note = newNote;
-      item.isEdited = true;
-      
-      KeranjangModule.saveToStorage();
-      KeranjangModule.renderItems();
-      KeranjangModule.updateSummary();
-      modal.close();
-      
-      Utils.showToast('Harga diperbarui', 'success');
+    // View toggle
+    document.querySelectorAll('.view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        Kasir.state.viewMode = btn.dataset.view;
+        Kasir.renderProducts();
+      });
+    });
+
+    // Clear cart
+    const btnClearCart = document.getElementById('btnClearCart');
+    if (btnClearCart) {
+      btnClearCart.addEventListener('click', () => {
+        Utils.confirm('Yakin ingin mengosongkan keranjang?', () => {
+          Kasir.clearCart();
+        });
+      });
+    }
+
+    // Quick actions
+    document.getElementById('btnTopup')?.addEventListener('click', Kasir.showTopupModal);
+    document.getElementById('btnTarik')?.addEventListener('click', Kasir.showTarikModal);
+    document.getElementById('btnManual')?.addEventListener('click', Kasir.showManualModal);
+    document.getElementById('btnHold')?.addEventListener('click', Kasir.holdTransaction);
+    document.getElementById('btnDiskon')?.addEventListener('click', Kasir.showDiscountModal);
+    document.getElementById('btnCatatan')?.addEventListener('click', Kasir.showNoteModal);
+    document.getElementById('btnBayar')?.addEventListener('click', Kasir.showPaymentModal);
+
+    // Payment modal
+    document.getElementById('closePaymentModal')?.addEventListener('click', Kasir.closePaymentModal);
+    document.getElementById('btnCancelPayment')?.addEventListener('click', Kasir.closePaymentModal);
+    document.getElementById('btnConfirmPayment')?.addEventListener('click', Kasir.processPayment);
+
+    // Payment methods
+    document.querySelectorAll('.payment-method').forEach(method => {
+      method.addEventListener('click', () => {
+        document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('active'));
+        method.classList.add('active');
+        Kasir.state.paymentMethod = method.dataset.method;
+      });
+    });
+
+    // Numpad
+    document.querySelectorAll('.numpad-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const num = btn.dataset.num;
+        const action = btn.dataset.action;
+        
+        if (num !== undefined) {
+          Kasir.addToPaymentAmount(num);
+        } else if (action === 'clear') {
+          Kasir.clearPaymentAmount();
+        } else if (action === 'backspace') {
+          Kasir.backspacePaymentAmount();
+        }
+      });
+    });
+
+    // Quick amounts
+    document.querySelectorAll('.quick-amount').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const amount = btn.dataset.amount;
+        if (amount === 'exact') {
+          const total = Kasir.calculateTotal();
+          Kasir.setPaymentAmount(total);
+        } else {
+          Kasir.setPaymentAmount(parseInt(amount));
+        }
+      });
+    });
+
+    // Manual modal
+    document.getElementById('closeManualModal')?.addEventListener('click', Kasir.closeManualModal);
+    document.getElementById('btnCancelManual')?.addEventListener('click', Kasir.closeManualModal);
+    document.getElementById('btnAddManual')?.addEventListener('click', Kasir.addManualProduct);
+
+    // Mobile cart toggle
+    const cartToggle = document.getElementById('cartToggle');
+    const cartSection = document.getElementById('cartSection');
+    if (cartToggle && cartSection) {
+      cartToggle.addEventListener('click', () => {
+        cartSection.classList.toggle('open');
+      });
+    }
+
+    // Logout
+    document.getElementById('btnLogout')?.addEventListener('click', () => {
+      Utils.confirm('Yakin ingin logout?', () => Auth.logout());
+    });
+
+    // Theme toggle
+    document.getElementById('btnTheme')?.addEventListener('click', Kasir.toggleTheme);
+  },
+
+  /**
+   * Setup sidebar
+   */
+  setupSidebar: () => {
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    
+    if (menuToggle) {
+      menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+      });
+    }
+
+    // Mobile menu
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    if (mobileMenuToggle) {
+      mobileMenuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('mobile-open');
+      });
+    }
+
+    // Dropdowns
+    document.querySelectorAll('[data-dropdown]').forEach(dropdown => {
+      const toggle = dropdown.querySelector('.nav-dropdown-toggle');
+      if (toggle) {
+        toggle.addEventListener('click', (e) => {
+          e.preventDefault();
+          dropdown.classList.toggle('open');
+        });
+      }
     });
   },
 
   /**
-   * Render cart items
+   * Setup keyboard shortcuts
    */
-  renderItems: () => {
-    const container = document.getElementById('cartItems');
+  setupKeyboardShortcuts: () => {
+    document.addEventListener('keydown', (e) => {
+      // Ctrl/Cmd + K for search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        document.getElementById('productSearch')?.focus();
+      }
+      
+      // F2 for payment
+      if (e.key === 'F2') {
+        e.preventDefault();
+        if (Kasir.state.cart.length > 0) {
+          Kasir.showPaymentModal();
+        }
+      }
+      
+      // Escape to close modals
+      if (e.key === 'Escape') {
+        Kasir.closePaymentModal();
+        Kasir.closeManualModal();
+      }
+    });
+  },
+
+  /**
+   * Load user data
+   */
+  loadUserData: () => {
+    const user = Auth.getCurrentUser();
+    if (user) {
+      document.getElementById('userName').textContent = user.name || user.email;
+      document.getElementById('userRole').textContent = 
+        user.role.charAt(0).toUpperCase() + user.role.slice(1);
+      
+      const avatar = document.getElementById('userAvatar');
+      if (avatar && user.name) {
+        const initials = user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+        avatar.textContent = initials;
+      }
+    }
+  },
+
+  /**
+   * Load categories
+   */
+  loadCategories: async () => {
+    try {
+      const snapshot = await database.ref('categories').once('value');
+      const categories = snapshot.val() || {};
+      
+      Kasir.state.categories = Object.entries(categories).map(([id, data]) => ({
+        id,
+        ...data
+      }));
+
+      Kasir.renderCategories();
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  },
+
+  /**
+   * Render categories
+   */
+  renderCategories: () => {
+    const container = document.getElementById('categoryPills');
     if (!container) return;
 
-    if (KeranjangModule.items.length === 0) {
+    const pills = Kasir.state.categories.map(cat => `
+      <button class="category-pill" data-category="${cat.id}">${cat.name}</button>
+    `).join('');
+
+    container.innerHTML = `<button class="category-pill active" data-category="all">Semua</button>${pills}`;
+
+    // Add click handlers
+    container.querySelectorAll('.category-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        container.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        Kasir.state.currentCategory = pill.dataset.category;
+        Kasir.renderProducts();
+      });
+    });
+  },
+
+  /**
+   * Load products
+   */
+  loadProducts: async () => {
+    try {
+      const snapshot = await database.ref('products').once('value');
+      const products = snapshot.val() || {};
+      
+      Kasir.state.products = Object.entries(products).map(([id, data]) => ({
+        id,
+        ...data
+      })).filter(p => p.status !== 'inactive');
+
+      Kasir.renderProducts();
+    } catch (error) {
+      console.error('Error loading products:', error);
+      Utils.showToast('Gagal memuat produk', 'error');
+    }
+  },
+
+  /**
+   * Render products
+   */
+  renderProducts: () => {
+    const container = document.getElementById('productsGrid');
+    if (!container) return;
+
+    let filtered = Kasir.state.products;
+
+    // Filter by category
+    if (Kasir.state.currentCategory !== 'all') {
+      filtered = filtered.filter(p => p.categoryId === Kasir.state.currentCategory);
+    }
+
+    // Filter by search
+    if (Kasir.state.searchQuery) {
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(Kasir.state.searchQuery) ||
+        (p.code && p.code.toLowerCase().includes(Kasir.state.searchQuery))
+      );
+    }
+
+    if (filtered.length === 0) {
       container.innerHTML = `
-        <div class="empty-cart">
-          <i class="fas fa-cart-plus"></i>
-          <p>Keranjang kosong</p>
-          <span>Pilih produk untuk memulai</span>
+        <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">
+          <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+          <p>Produk tidak ditemukan</p>
         </div>
       `;
       return;
     }
 
-    container.innerHTML = KeranjangModule.items.map(item => `
-      <div class="cart-item" data-id="${item.id}">
-        <div class="item-image">
-          ${item.gambar ? 
-            `<img src="${item.gambar}" alt="${item.nama}">` : 
-            `<div class="placeholder"><i class="fas fa-box"></i></div>`
-          }
+    if (Kasir.state.viewMode === 'grid') {
+      container.className = 'products-grid';
+      container.innerHTML = filtered.map(product => Kasir.renderProductCard(product)).join('');
+    } else {
+      container.className = 'products-list';
+      container.innerHTML = filtered.map(product => Kasir.renderProductListItem(product)).join('');
+    }
+
+    // Add click handlers
+    container.querySelectorAll('.product-card, .product-list-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const productId = el.dataset.id;
+        const product = Kasir.state.products.find(p => p.id === productId);
+        if (product) Kasir.addToCart(product);
+      });
+    });
+  },
+
+  /**
+   * Render product card (grid view)
+   */
+  renderProductCard: (product) => {
+    const stockClass = product.stock <= 0 ? 'empty' : product.stock <= 5 ? 'low' : '';
+    const stockText = product.stock <= 0 ? 'Habis' : product.stock <= 5 ? `${product.stock} left` : product.stock;
+    
+    return `
+      <div class="product-card" data-id="${product.id}">
+        <div class="product-card-image">
+          ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '<i class="fas fa-box"></i>'}
+          <span class="product-stock-badge ${stockClass}">${stockText}</span>
         </div>
-        
-        <div class="item-details">
-          <div class="item-name">${item.nama}</div>
-          <div class="item-price">
-            ${item.isEdited ? '<i class="fas fa-edit" title="Harga diedit"></i>' : ''}
-            ${Utils.formatRupiah(item.hargaJual)}
-          </div>
-          ${item.note ? `<div class="item-note">${item.note}</div>` : ''}
-        </div>
-        
-        <div class="item-actions">
-          <div class="qty-control">
-            <button onclick="KeranjangModule.updateQuantity('${item.id}', ${item.qty - 1})">
-              <i class="fas fa-minus"></i>
-            </button>
-            <span>${item.qty}</span>
-            <button onclick="KeranjangModule.updateQuantity('${item.id}', ${item.qty + 1})">
-              <i class="fas fa-plus"></i>
-            </button>
-          </div>
-          
-          <div class="item-total">
-            ${Utils.formatRupiah(item.hargaJual * item.qty)}
-          </div>
-          
-          <button class="btn-edit" onclick="KeranjangModule.editPrice('${item.id}')" title="Edit">
-            <i class="fas fa-pencil-alt"></i>
-          </button>
-          
-          <button class="btn-remove" onclick="KeranjangModule.removeItem('${item.id}')" title="Hapus">
-            <i class="fas fa-times"></i>
-          </button>
+        <div class="product-card-info">
+          <div class="product-card-name">${product.name}</div>
+          <div class="product-card-price">${Utils.formatRupiah(product.sellingPrice)}</div>
+          ${product.code ? `<div class="product-card-code">${product.code}</div>` : ''}
         </div>
       </div>
-    `).join('');
+    `;
   },
 
   /**
-   * Update summary totals
+   * Render product list item
    */
-  updateSummary: () => {
-    const subtotal = KeranjangModule.items.reduce((sum, item) => 
-      sum + (item.hargaJual * item.qty), 0);
-    
-    const totalDiscount = KeranjangModule.discounts.reduce((sum, d) => sum + d.amount, 0);
-    const tax = KeranjangModule.tax;
-    const total = subtotal - totalDiscount + tax;
-
-    // Update UI
-    const subtotalEl = document.getElementById('cartSubtotal');
-    const discountEl = document.getElementById('cartDiscount');
-    const discountRow = document.getElementById('discountRow');
-    const taxEl = document.getElementById('cartTax');
-    const taxRow = document.getElementById('taxRow');
-    const totalEl = document.getElementById('cartTotal');
-    const checkoutEl = document.getElementById('checkoutTotal');
-    const mobileBadge = document.getElementById('mobileCartBadge');
-
-    if (subtotalEl) subtotalEl.textContent = Utils.formatRupiah(subtotal);
-    if (discountEl) discountEl.textContent = `-${Utils.formatRupiah(totalDiscount)}`;
-    if (discountRow) discountRow.style.display = totalDiscount > 0 ? 'flex' : 'none';
-    if (taxEl) taxEl.textContent = Utils.formatRupiah(tax);
-    if (taxRow) taxRow.style.display = tax > 0 ? 'flex' : 'none';
-    if (totalEl) totalEl.innerHTML = `<strong>${Utils.formatRupiah(total)}</strong>`;
-    if (checkoutEl) checkoutEl.textContent = Utils.formatRupiah(total);
-    if (mobileBadge) mobileBadge.textContent = KeranjangModule.items.length.toString();
-  },
-
-  /**
-   * Apply fixed discount
-   */
-  applyDiscount: (amount) => {
-    KeranjangModule.discounts.push({
-      type: 'fixed',
-      amount: amount,
-      name: `Diskon ${Utils.formatRupiah(amount)}`
-    });
-    KeranjangModule.updateSummary();
-    Utils.showToast(`Diskon ${Utils.formatRupiah(amount)} diterapkan`, 'success');
-  },
-
-  /**
-   * Apply percentage discount
-   */
-  applyDiscountPercent: (percent) => {
-    const subtotal = KeranjangModule.items.reduce((sum, item) => 
-      sum + (item.hargaJual * item.qty), 0);
-    const amount = Math.round(subtotal * percent / 100);
-    
-    KeranjangModule.discounts.push({
-      type: 'percent',
-      percent: percent,
-      amount: amount,
-      name: `Diskon ${percent}%`
-    });
-    
-    KeranjangModule.updateSummary();
-    Utils.showToast(`Diskon ${percent}% diterapkan`, 'success');
-  },
-
-  /**
-   * Open discount modal
-   */
-  openDiscountModal: () => {
-    const modal = Utils.createModal(`
-      <div style="padding: 20px;">
-        <h3 style="margin-bottom: 16px;">Tambah Diskon</h3>
-        
-        <div class="discount-tabs">
-          <button class="tab-btn active" onclick="switchDiscountTab('fixed')">Nominal</button>
-          <button class="tab-btn" onclick="switchDiscountTab('percent')">Persen</button>
+  renderProductListItem: (product) => {
+    return `
+      <div class="product-list-item" data-id="${product.id}">
+        <div class="product-list-image">
+          ${product.image ? `<img src="${product.image}" alt="${product.name}">` : '<i class="fas fa-box"></i>'}
         </div>
-        
-        <div id="fixedDiscount" class="tab-content">
-          <input type="number" id="discountAmount" class="form-input" 
-                 placeholder="Jumlah diskon" min="0" step="1000">
+        <div class="product-list-info">
+          <div class="product-list-name">${product.name}</div>
+          <div class="product-list-meta">
+            ${product.code ? `Kode: ${product.code} • ` : ''}
+            Stok: ${product.stock} ${product.unit || 'pcs'}
+          </div>
         </div>
-        
-        <div id="percentDiscount" class="tab-content" style="display: none;">
-          <input type="number" id="discountPercent" class="form-input" 
-                 placeholder="Persentase" min="0" max="100" step="1">
-        </div>
-        
-        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px;">
-          <button onclick="this.closest('.modal-overlay').remove()" 
-                  style="padding: 8px 16px; border: 1px solid #d1d5db; 
-                         background: white; border-radius: 6px;">
-            Batal
-          </button>
-          <button id="applyDiscountBtn" 
-                  style="padding: 8px 16px; background: #4f46e5; color: white; 
-                         border: none; border-radius: 6px;">
-            Terapkan
-          </button>
-        </div>
+        <div class="product-list-price">${Utils.formatRupiah(product.sellingPrice)}</div>
       </div>
-    `, { closable: true });
-
-    // Tab switching
-    window.switchDiscountTab = (tab) => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      event.target.classList.add('active');
-      
-      document.getElementById('fixedDiscount').style.display = tab === 'fixed' ? 'block' : 'none';
-      document.getElementById('percentDiscount').style.display = tab === 'percent' ? 'block' : 'none';
-    };
-
-    document.getElementById('applyDiscountBtn').addEventListener('click', () => {
-      const activeTab = document.querySelector('.tab-btn.active').textContent;
-      
-      if (activeTab === 'Nominal') {
-        const amount = parseInt(document.getElementById('discountAmount').value) || 0;
-        if (amount > 0) KeranjangModule.applyDiscount(amount);
-      } else {
-        const percent = parseInt(document.getElementById('discountPercent').value) || 0;
-        if (percent > 0) KeranjangModule.applyDiscountPercent(percent);
-      }
-      
-      modal.close();
-    });
+    `;
   },
 
   /**
-   * Open payment modal
+   * Add product to cart
    */
-  openPayment: () => {
-    if (KeranjangModule.items.length === 0) {
-      Utils.showToast('Keranjang masih kosong', 'warning');
+  addToCart: (product, qty = 1) => {
+    if (product.stock <= 0) {
+      Utils.showToast('Produk habis', 'warning');
       return;
     }
 
-    const total = KeranjangModule.getTotal();
+    const existingItem = Kasir.state.cart.find(item => item.productId === product.id);
+
+    if (existingItem) {
+      if (existingItem.quantity + qty > product.stock) {
+        Utils.showToast('Stok tidak mencukupi', 'warning');
+        return;
+      }
+      existingItem.quantity += qty;
+      existingItem.total = existingItem.quantity * existingItem.price;
+    } else {
+      Kasir.state.cart.push({
+        productId: product.id,
+        name: product.name,
+        price: product.sellingPrice,
+        cost: product.costPrice || 0,
+        quantity: qty,
+        total: product.sellingPrice * qty,
+        image: product.image || null
+      });
+    }
+
+    Kasir.saveCartToStorage();
+    Kasir.renderCart();
+    Kasir.updateCartSummary();
     
-    UangPasModule.open(total, (paymentData) => {
-      KasirModule.checkout(paymentData);
-    });
+    Utils.showToast(`${product.name} ditambahkan ke keranjang`, 'success');
   },
 
   /**
-   * Get cart total
+   * Remove from cart
    */
-  getTotal: () => {
-    const subtotal = KeranjangModule.items.reduce((sum, item) => 
-      sum + (item.hargaJual * item.qty), 0);
-    const totalDiscount = KeranjangModule.discounts.reduce((sum, d) => sum + d.amount, 0);
-    return subtotal - totalDiscount + KeranjangModule.tax;
+  removeFromCart: (productId) => {
+    Kasir.state.cart = Kasir.state.cart.filter(item => item.productId !== productId);
+    Kasir.saveCartToStorage();
+    Kasir.renderCart();
+    Kasir.updateCartSummary();
   },
 
   /**
-   * Get cart items
+   * Update cart item quantity
    */
-  getItems: () => {
-    return [...KeranjangModule.items];
+  updateCartItemQty: (productId, delta) => {
+    const item = Kasir.state.cart.find(i => i.productId === productId);
+    if (!item) return;
+
+    const product = Kasir.state.products.find(p => p.id === productId);
+    const newQty = item.quantity + delta;
+
+    if (newQty <= 0) {
+      Kasir.removeFromCart(productId);
+      return;
+    }
+
+    if (product && newQty > product.stock) {
+      Utils.showToast('Stok tidak mencukupi', 'warning');
+      return;
+    }
+
+    item.quantity = newQty;
+    item.total = item.quantity * item.price;
+
+    Kasir.saveCartToStorage();
+    Kasir.renderCart();
+    Kasir.updateCartSummary();
   },
 
   /**
-   * Find item in cart
+   * Update cart item price
    */
-  findItem: (productId) => {
-    return KeranjangModule.items.find(i => i.id === productId);
+  updateCartItemPrice: (productId, newPrice) => {
+    const item = Kasir.state.cart.find(i => i.productId === productId);
+    if (!item) return;
+
+    item.price = newPrice;
+    item.total = item.quantity * item.price;
+
+    Kasir.saveCartToStorage();
+    Kasir.renderCart();
+    Kasir.updateCartSummary();
   },
 
   /**
    * Clear cart
    */
-  clear: () => {
-    KeranjangModule.items = [];
-    KeranjangModule.discounts = [];
-    KeranjangModule.tax = 0;
-    KeranjangModule.saveToStorage();
-    KeranjangModule.renderItems();
-    KeranjangModule.updateSummary();
+  clearCart: () => {
+    Kasir.state.cart = [];
+    Kasir.state.discount = 0;
+    Kasir.state.note = '';
+    Kasir.saveCartToStorage();
+    Kasir.renderCart();
+    Kasir.updateCartSummary();
+    Utils.showToast('Keranjang dikosongkan', 'info');
   },
 
   /**
-   * Confirm clear
+   * Render cart
    */
-  confirmClear: () => {
-    if (KeranjangModule.items.length === 0) return;
+  renderCart: () => {
+    const container = document.getElementById('cartItems');
+    const countBadge = document.getElementById('cartCount');
     
-    Utils.confirm('Yakin ingin mengosongkan keranjang?', () => {
-      KeranjangModule.clear();
-    });
-  },
+    if (!container) return;
 
-  /**
-   * Save to storage
-   */
-  saveToStorage: () => {
-    Utils.session.set('cart', {
-      items: KeranjangModule.items,
-      discounts: KeranjangModule.discounts,
-      tax: KeranjangModule.tax,
-      savedAt: Date.now()
-    });
-  },
+    // Update count
+    const totalItems = Kasir.state.cart.reduce((sum, item) => sum + item.quantity, 0);
+    if (countBadge) countBadge.textContent = totalItems;
 
-  /**
-   * Load from storage
-   */
-  loadFromStorage: () => {
-    const saved = Utils.session.get('cart');
-    if (saved && Date.now() - saved.savedAt < 3600000) { // 1 hour expiry
-      KeranjangModule.items = saved.items || [];
-      KeranjangModule.discounts = saved.discounts || [];
-      KeranjangModule.tax = saved.tax || 0;
-      KeranjangModule.renderItems();
-      KeranjangModule.updateSummary();
+    if (Kasir.state.cart.length === 0) {
+      container.innerHTML = `
+        <div class="cart-empty">
+          <i class="fas fa-shopping-basket"></i>
+          <p>Keranjang masih kosong</p>
+          <p style="font-size: 0.75rem; margin-top: 0.5rem;">Klik produk untuk menambahkan</p>
+        </div>
+      `;
+      return;
     }
+
+    container.innerHTML = Kasir.state.cart.map(item => `
+      <div class="cart-item">
+        <div class="cart-item-image">
+          ${item.image ? `<img src="${item.image}" alt="${item.name}">` : '<i class="fas fa-box"></i>'}
+        </div>
+        <div class="cart-item-details">
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-price">${Utils.formatRupiah(item.price)}</div>
+          <div class="cart-item-actions">
+            <button class="qty-btn" onclick="Kasir.updateCartItemQty('${item.productId}', -1)">-</button>
+            <input type="text" class="qty-input" value="${item.quantity}" readonly>
+            <button class="qty-btn" onclick="Kasir.updateCartItemQty('${item.productId}', 1)">+</button>
+          </div>
+        </div>
+        <div class="cart-item-total">${Utils.formatRupiah(item.total)}</div>
+        <button class="cart-item-remove" onclick="Kasir.removeFromCart('${item.productId}')">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    `).join('');
+  },
+
+  /**
+   * Update cart summary
+   */
+  updateCartSummary: () => {
+    const subtotal = Kasir.state.cart.reduce((sum, item) => sum + item.total, 0);
+    const tax = subtotal * Kasir.state.tax;
+    const total = subtotal + tax - Kasir.state.discount;
+
+    document.getElementById('subtotal').textContent = Utils.formatRupiah(subtotal);
+    document.getElementById('discount').textContent = Utils.formatRupiah(Kasir.state.discount);
+    document.getElementById('tax').textContent = Utils.formatRupiah(tax);
+    document.getElementById('total').textContent = Utils.formatRupiah(total);
+  },
+
+  /**
+   * Calculate total
+   */
+  calculateTotal: () => {
+    const subtotal = Kasir.state.cart.reduce((sum, item) => sum + item.total, 0);
+    const tax = subtotal * Kasir.state.tax;
+    return subtotal + tax - Kasir.state.discount;
+  },
+
+  /**
+   * Save cart to storage
+   */
+  saveCartToStorage: () => {
+    Utils.setStorage('kasir_cart', Kasir.state.cart);
+    Utils.setStorage('kasir_discount', Kasir.state.discount);
+    Utils.setStorage('kasir_note', Kasir.state.note);
+  },
+
+  /**
+   * Load cart from storage
+   */
+  loadCartFromStorage: () => {
+    const cart = Utils.getStorage('kasir_cart');
+    const discount = Utils.getStorage('kasir_discount');
+    const note = Utils.getStorage('kasir_note');
+
+    if (cart) Kasir.state.cart = cart;
+    if (discount) Kasir.state.discount = discount;
+    if (note) Kasir.state.note = note;
+
+    Kasir.renderCart();
+    Kasir.updateCartSummary();
+  },
+
+  /**
+   * Show payment modal
+   */
+  showPaymentModal: () => {
+    if (Kasir.state.cart.length === 0) {
+      Utils.showToast('Keranjang masih kosong', 'warning');
+      return;
+    }
+
+    const total = Kasir.calculateTotal();
+    document.getElementById('paymentTotal').textContent = Utils.formatRupiah(total);
+    Kasir.clearPaymentAmount();
+    
+    document.getElementById('paymentModal').classList.add('active');
+  },
+
+  /**
+   * Close payment modal
+   */
+  closePaymentModal: () => {
+    document.getElementById('paymentModal').classList.remove('active');
+  },
+
+  /**
+   * Add to payment amount
+   */
+  addToPaymentAmount: (num) => {
+    const input = document.getElementById('paymentAmount');
+    let current = input.value.replace(/[^0-9]/g, '');
+    current = current === '0' ? num : current + num;
+    
+    const amount = parseInt(current);
+    input.value = Utils.formatRupiah(amount);
+    Kasir.calculateChange(amount);
+  },
+
+  /**
+   * Set payment amount
+   */
+  setPaymentAmount: (amount) => {
+    const input = document.getElementById('paymentAmount');
+    input.value = Utils.formatRupiah(amount);
+    Kasir.calculateChange(amount);
+  },
+
+  /**
+   * Clear payment amount
+   */
+  clearPaymentAmount: () => {
+    document.getElementById('paymentAmount').value = '';
+    document.getElementById('paymentChange').textContent = 'Rp 0';
+  },
+
+  /**
+   * Backspace payment amount
+   */
+  backspacePaymentAmount: () => {
+    const input = document.getElementById('paymentAmount');
+    let current = input.value.replace(/[^0-9]/g, '');
+    current = current.slice(0, -1);
+    
+    if (current === '') {
+      input.value = '';
+      document.getElementById('paymentChange').textContent = 'Rp 0';
+    } else {
+      const amount = parseInt(current);
+      input.value = Utils.formatRupiah(amount);
+      Kasir.calculateChange(amount);
+    }
+  },
+
+  /**
+   * Calculate change
+   */
+  calculateChange: (amount) => {
+    const total = Kasir.calculateTotal();
+    const change = amount - total;
+    document.getElementById('paymentChange').textContent = Utils.formatRupiah(change > 0 ? change : 0);
+  },
+
+  /**
+   * Process payment
+   */
+  processPayment: async () => {
+    const amountStr = document.getElementById('paymentAmount').value;
+    const amount = parseInt(amountStr.replace(/[^0-9]/g, '')) || 0;
+    const total = Kasir.calculateTotal();
+
+    if (amount < total) {
+      Utils.showToast('Jumlah bayar kurang dari total', 'error');
+      return;
+    }
+
+    try {
+      Utils.showLoading('Memproses transaksi...');
+
+      const user = Auth.getCurrentUser();
+      const transactionId = Utils.generateId('TRX');
+      const timestamp = Date.now();
+
+      // Calculate profit
+      const profit = Kasir.state.cart.reduce((sum, item) => 
+        sum + ((item.price - item.cost) * item.quantity), 0
+      );
+
+      const transaction = {
+        id: transactionId,
+        type: 'penjualan',
+        items: Kasir.state.cart,
+        subtotal: Kasir.state.cart.reduce((sum, item) => sum + item.total, 0),
+        tax: total * Kasir.state.tax,
+        discount: Kasir.state.discount,
+        total: total,
+        profit: profit,
+        paymentMethod: Kasir.state.paymentMethod,
+        paymentAmount: amount,
+        change: amount - total,
+        cashierId: user.uid,
+        cashierName: user.name,
+        timestamp: timestamp,
+        status: 'completed',
+        note: Kasir.state.note
+      };
+
+      // Save transaction
+      const today = Utils.getTodayString();
+      await database.ref(`transactions/${today}/${transactionId}`).set(transaction);
+
+      // Update product stocks
+      for (const item of Kasir.state.cart) {
+        const productRef = database.ref(`products/${item.productId}`);
+        const snapshot = await productRef.once('value');
+        const product = snapshot.val();
+        
+        if (product) {
+          await productRef.update({
+            stock: Math.max(0, (product.stock || 0) - item.quantity),
+            soldCount: (product.soldCount || 0) + item.quantity
+          });
+        }
+      }
+
+      // Clear cart
+      Kasir.clearCart();
+      Kasir.closePaymentModal();
+      Utils.hideLoading();
+
+      Utils.showToast('Transaksi berhasil!', 'success');
+      
+      // Print receipt (if printer configured)
+      Kasir.printReceipt(transaction);
+
+    } catch (error) {
+      console.error('Payment error:', error);
+      Utils.hideLoading();
+      Utils.showToast('Gagal memproses transaksi', 'error');
+    }
+  },
+
+  /**
+   * Show manual input modal
+   */
+  showManualModal: () => {
+    document.getElementById('manualModal').classList.add('active');
+    document.getElementById('manualName').focus();
+  },
+
+  /**
+   * Close manual modal
+   */
+  closeManualModal: () => {
+    document.getElementById('manualModal').classList.remove('active');
+    // Clear inputs
+    document.getElementById('manualName').value = '';
+    document.getElementById('manualPrice').value = '';
+    document.getElementById('manualCost').value = '';
+    document.getElementById('manualQty').value = '1';
+  },
+
+  /**
+   * Add manual product
+   */
+  addManualProduct: () => {
+    const name = document.getElementById('manualName').value.trim();
+    const price = parseInt(document.getElementById('manualPrice').value) || 0;
+    const cost = parseInt(document.getElementById('manualCost').value) || 0;
+    const qty = parseInt(document.getElementById('manualQty').value) || 1;
+
+    if (!name || price <= 0) {
+      Utils.showToast('Nama dan harga wajib diisi', 'warning');
+      return;
+    }
+
+    const manualProduct = {
+      id: 'manual_' + Date.now(),
+      name: name,
+      sellingPrice: price,
+      costPrice: cost,
+      stock: 9999
+    };
+
+    Kasir.addToCart(manualProduct, qty);
+    Kasir.closeManualModal();
+  },
+
+  /**
+   * Show discount modal
+   */
+  showDiscountModal: () => {
+    const discount = prompt('Masukkan jumlah diskon (Rp):', Kasir.state.discount);
+    if (discount !== null) {
+      Kasir.state.discount = parseInt(discount) || 0;
+      Kasir.saveCartToStorage();
+      Kasir.updateCartSummary();
+    }
+  },
+
+  /**
+   * Show note modal
+   */
+  showNoteModal: () => {
+    const note = prompt('Catatan untuk transaksi:', Kasir.state.note);
+    if (note !== null) {
+      Kasir.state.note = note;
+      Kasir.saveCartToStorage();
+    }
+  },
+
+  /**
+   * Show topup modal
+   */
+  showTopupModal: () => {
+    window.location.href = 'kas-topup.html';
+  },
+
+  /**
+   * Show tarik modal
+   */
+  showTarikModal: () => {
+    window.location.href = 'kas-tarik.html';
+  },
+
+  /**
+   * Hold transaction
+   */
+  holdTransaction: () => {
+    if (Kasir.state.cart.length === 0) {
+      Utils.showToast('Keranjang masih kosong', 'warning');
+      return;
+    }
+
+    const holdId = Utils.generateId('HOLD');
+    const holdData = {
+      id: holdId,
+      cart: Kasir.state.cart,
+      discount: Kasir.state.discount,
+      note: Kasir.state.note,
+      timestamp: Date.now()
+    };
+
+    // Save to held transactions
+    const held = Utils.getStorage('held_transactions') || [];
+    held.push(holdData);
+    Utils.setStorage('held_transactions', held);
+
+    Kasir.clearCart();
+    Utils.showToast('Transaksi ditahan', 'success');
+  },
+
+  /**
+   * Print receipt
+   */
+  printReceipt: (transaction) => {
+    // Implementation depends on printer configuration
+    console.log('Printing receipt:', transaction);
+  },
+
+  /**
+   * Toggle theme
+   */
+  toggleTheme: () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    Utils.setStorage('dark_mode', !isDark);
   }
 };
+
+// Export
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = Kasir;
+}
