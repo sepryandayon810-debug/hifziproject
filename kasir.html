@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#6366f1">
+  <title>WebPOS - Kasir</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="../css/style.css">
+  
+  <style>
+    /* Kasir Specific Styles */
+    .kasir-layout {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 1rem;
+      height: calc(100vh - 140px);
+    }
+
+    @media (max-width: 1024px) {
+      .kasir-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr auto;
+        height: auto;
+      }
+    }
+
+    /* Product Section */
+    .product-section {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overflow: hidden;
+    }
+
+    .product-toolbar {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 200px;
+      position: relative;
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      background: var(--bg-card);
+      font-size: 0.875rem;
+    }
+
+    .view-toggle {
+      display: flex;
+      gap: 0.25rem;
+      background: var(--bg-secondary);
+      padding: 0.25rem;
+      border-radius: var(--radius-lg);
+    }
+
+    .view-btn {
+      width: 36px;
+      height: 36px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .view-btn.active {
+      background: var(--bg-card);
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Category Pills */
+    .category-pills {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      scrollbar-width: none;
+    }
+
+    .category-pills::-webkit-scrollbar {
+      display: none;
+    }
+
+    .category-pill {
+      padding: 0.5rem 1rem;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      border-radius: 50px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .category-pill:hover,
+    .category-pill.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Products Grid */
+    .products-container {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .product-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
+    }
+
+    .product-card-image {
+      aspect-ratio: 1;
+      background: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .product-card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .product-card-image i {
+      font-size: 2rem;
+      color: var(--text-muted);
+    }
+
+    .product-stock-badge {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      padding: 0.25rem 0.5rem;
+      background: var(--success);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: 600;
+      border-radius: 50px;
+    }
+
+    .product-stock-badge.low {
+      background: var(--warning);
+    }
+
+    .product-stock-badge.empty {
+      background: var(--danger);
+    }
+
+    .product-card-info {
+      padding: 0.875rem;
+    }
+
+    .product-card-name {
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.25rem;
+    }
+
+    .product-card-price {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 0.9375rem;
+    }
+
+    .product-card-code {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Products List View */
+    .products-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .product-list-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .product-list-item:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .product-list-image {
+      width: 60px;
+      height: 60px;
+      border-radius: var(--radius-md);
+      background: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .product-list-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: var(--radius-md);
+    }
+
+    .product-list-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .product-list-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .product-list-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .product-list-price {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 1rem;
+    }
+
+    /* Cart Section */
+    .cart-section {
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-height: calc(100vh - 140px);
+    }
+
+    @media (max-width: 1024px) {
+      .cart-section {
+        max-height: 500px;
+      }
+    }
+
+    .cart-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .cart-title {
+      font-weight: 700;
+      font-size: 1.125rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .cart-count {
+      background: var(--primary);
+      color: white;
+      font-size: 0.75rem;
+      padding: 0.125rem 0.5rem;
+      border-radius: 50px;
+    }
+
+    .cart-clear {
+      font-size: 0.75rem;
+      color: var(--danger);
+      background: none;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .cart-items {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.75rem;
+    }
+
+    .cart-item {
+      display: flex;
+      gap: 0.75rem;
+      padding: 0.75rem;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      margin-bottom: 0.5rem;
+      position: relative;
+    }
+
+    .cart-item-image {
+      width: 50px;
+      height: 50px;
+      border-radius: var(--radius-md);
+      background: var(--bg-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .cart-item-image i {
+      color: var(--text-muted);
+      font-size: 1.25rem;
+    }
+
+    .cart-item-details {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .cart-item-name {
+      font-weight: 600;
+      font-size: 0.875rem;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 0.25rem;
+    }
+
+    .cart-item-price {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .cart-item-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .qty-btn {
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: all 0.2s;
+    }
+
+    .qty-btn:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .qty-input {
+      width: 40px;
+      text-align: center;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      padding: 0.25rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+
+    .cart-item-total {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 0.9375rem;
+      align-self: center;
+    }
+
+    .cart-item-remove {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      width: 24px;
+      height: 24px;
+      border: none;
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      opacity: 0;
+      transition: all 0.2s;
+    }
+
+    .cart-item:hover .cart-item-remove {
+      opacity: 1;
+    }
+
+    .cart-item-remove:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    .cart-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-muted);
+    }
+
+    .cart-empty i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+
+    /* Cart Footer */
+    .cart-footer {
+      padding: 1rem;
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+    }
+
+    .cart-summary {
+      margin-bottom: 1rem;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .summary-row.discount {
+      color: var(--success);
+    }
+
+    .summary-row.total {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      border-top: 2px solid var(--border-color);
+      padding-top: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    .cart-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+    }
+
+    .cart-actions .btn {
+      padding: 0.875rem;
+      font-size: 0.875rem;
+    }
+
+    .btn-pay {
+      grid-column: span 2;
+      background: linear-gradient(135deg, var(--success), #059669);
+      font-size: 1rem;
+      padding: 1rem;
+    }
+
+    /* Quick Actions Bar */
+    .quick-actions-bar {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      margin-bottom: 1rem;
+      overflow-x: auto;
+    }
+
+    .quick-action-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .quick-action-btn:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .quick-action-btn i {
+      font-size: 0.875rem;
+    }
+
+    /* Modal Styles */
+    .modal-body {
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+
+    .payment-methods {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .payment-method {
+      padding: 1rem;
+      border: 2px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .payment-method:hover,
+    .payment-method.active {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .payment-method i {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+    }
+
+    .payment-method.active i {
+      color: var(--primary);
+    }
+
+    .payment-method span {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .amount-display {
+      text-align: center;
+      padding: 1.5rem;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-lg);
+      margin-bottom: 1rem;
+    }
+
+    .amount-label {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .amount-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .numpad-btn {
+      padding: 1.25rem;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      font-size: 1.25rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .numpad-btn:hover {
+      background: var(--bg-secondary);
+    }
+
+    .numpad-btn.action {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .numpad-btn.action:hover {
+      background: var(--primary-dark);
+    }
+
+    .quick-amounts {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .quick-amount {
+      padding: 0.5rem 1rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 50px;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-amount:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+      .kasir-layout {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .cart-section {
+        position: fixed;
+        bottom: 70px;
+        left: 0;
+        right: 0;
+        max-height: 60vh;
+        z-index: 100;
+        transform: translateY(100%);
+        transition: transform 0.3s ease;
+      }
+
+      .cart-section.open {
+        transform: translateY(0);
+      }
+
+      .cart-toggle {
+        position: fixed;
+        bottom: 80px;
+        right: 1rem;
+        width: 56px;
+        height: 56px;
+        background: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        box-shadow: var(--shadow-lg);
+        display: flex;
+      align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        z-index: 101;
+        cursor: pointer;
+      }
+
+      .products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+      }
+
+      .product-toolbar {
+        flex-direction: column;
+      }
+
+      .search-box {
+        width: 100%;
+      }
+    }
+
+    /* Loading State */
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--border-color) 50%, var(--bg-secondary) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: var(--radius-md);
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .product-card.skeleton {
+      height: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <div class="logo-icon">
+            <i class="fas fa-cash-register"></i>
+          </div>
+          <span class="logo-text">WebPOS</span>
+        </div>
+      </div>
+      
+      <button class="menu-toggle" id="menuToggle">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      
+      <div class="sidebar-search">
+        <div class="search-input-wrapper">
+          <i class="fas fa-search"></i>
+          <input type="text" class="search-input" id="menuSearch" placeholder="Cari menu...">
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Utama</div>
+          <ul class="nav-menu">
+            <li class="nav-item">
+              <a href="../index.html" class="nav-link" data-menu="dashboard">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="kasir.html" class="nav-link active" data-menu="kasir">
+                <i class="fas fa-cash-register"></i>
+                <span>Kasir</span>
+              </a>
+            </li>
+            <li class="nav-item nav-dropdown" data-dropdown>
+              <div class="nav-link nav-dropdown-toggle" data-menu="produk">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <i class="fas fa-box"></i>
+                  <span>Produk</span>
+                </div>
+                <i class="fas fa-chevron-down dropdown-arrow"></i>
+              </div>
+              <ul class="nav-submenu">
+                <li><a href="produk.html" class="nav-link"><span>Daftar Produk</span></a></li>
+                <li><a href="produk-kategori.html" class="nav-link"><span>Kategori</span></a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="user-profile" id="userProfile">
+          <div class="user-avatar" id="userAvatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="user-info">
+            <div class="user-name" id="userName">Loading...</div>
+            <div class="user-role" id="userRole">-</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="main-header">
+        <div class="header-left">
+          <button class="btn-icon d-md-none" id="mobileMenuToggle">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h1 class="header-title">Kasir</h1>
+        </div>
+        
+        <div class="header-stats" id="headerStats">
+          <div class="stat-item">
+            <span class="stat-label">Kas di Tangan</span>
+            <span class="stat-value" id="kasDitangan">Rp 0</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-label">Total Penjualan</span>
+            <span class="stat-value positive" id="totalPenjualan">Rp 0</span>
+          </div>
+        </div>
+        
+        <div class="header-actions">
+          <button class="btn-icon" id="btnScan">
+            <i class="fas fa-barcode"></i>
+          </button>
+          <button class="btn-icon" id="btnTheme">
+            <i class="fas fa-moon"></i>
+          </button>
+          <button class="btn-icon" id="btnLogout">
+            <i class="fas fa-sign-out-alt"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- Quick Actions -->
+        <div class="quick-actions-bar">
+          <button class="quick-action-btn" id="btnTopup">
+            <i class="fas fa-arrow-up"></i>
+            <span>Top Up</span>
+          </button>
+          <button class="quick-action-btn" id="btnTarik">
+            <i class="fas fa-arrow-down"></i>
+            <span>Tarik Tunai</span>
+          </button>
+          <button class="quick-action-btn" id="btnManual">
+            <i class="fas fa-edit"></i>
+            <span>Input Manual</span>
+          </button>
+          <button class="quick-action-btn" id="btnHold">
+            <i class="fas fa-pause"></i>
+            <span>Tahan</span>
+          </button>
+        </div>
+
+        <!-- Kasir Layout -->
+        <div class="kasir-layout">
+          <!-- Products Section -->
+          <div class="product-section">
+            <!-- Toolbar -->
+            <div class="product-toolbar">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="productSearch" placeholder="Cari produk (Ctrl+K)...">
+              </div>
+              <div class="view-toggle">
+                <button class="view-btn active" data-view="grid" title="Grid View">
+                  <i class="fas fa-th-large"></i>
+                </button>
+                <button class="view-btn" data-view="list" title="List View">
+                  <i class="fas fa-list"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Categories -->
+            <div class="category-pills" id="categoryPills">
+              <button class="category-pill active" data-category="all">Semua</button>
+              <!-- Categories will be loaded dynamically -->
+            </div>
+
+            <!-- Products -->
+            <div class="products-container">
+              <div class="products-grid" id="productsGrid">
+                <!-- Products will be loaded dynamically -->
+                <div class="product-card skeleton"></div>
+                <div class="product-card skeleton"></div>
+                <div class="product-card skeleton"></div>
+                <div class="product-card skeleton"></div>
+                <div class="product-card skeleton"></div>
+                <div class="product-card skeleton"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cart Section -->
+          <div class="cart-section" id="cartSection">
+            <div class="cart-header">
+              <div class="cart-title">
+                <i class="fas fa-shopping-cart"></i>
+                Keranjang
+                <span class="cart-count" id="cartCount">0</span>
+              </div>
+              <button class="cart-clear" id="btnClearCart">
+                <i class="fas fa-trash"></i>
+                Hapus
+              </button>
+            </div>
+
+            <div class="cart-items" id="cartItems">
+              <div class="cart-empty">
+                <i class="fas fa-shopping-basket"></i>
+                <p>Keranjang masih kosong</p>
+                <p style="font-size: 0.75rem; margin-top: 0.5rem;">Klik produk untuk menambahkan</p>
+              </div>
+            </div>
+
+            <div class="cart-footer">
+              <div class="cart-summary">
+                <div class="summary-row">
+                  <span>Subtotal</span>
+                  <span id="subtotal">Rp 0</span>
+                </div>
+                <div class="summary-row">
+                  <span>Diskon</span>
+                  <span id="discount">Rp 0</span>
+                </div>
+                <div class="summary-row">
+                  <span>PPN (11%)</span>
+                  <span id="tax">Rp 0</span>
+                </div>
+                <div class="summary-row total">
+                  <span>Total</span>
+                  <span id="total">Rp 0</span>
+                </div>
+              </div>
+
+              <div class="cart-actions">
+                <button class="btn btn-secondary" id="btnDiskon">
+                  <i class="fas fa-percent"></i>
+                  Diskon
+                </button>
+                <button class="btn btn-secondary" id="btnCatatan">
+                  <i class="fas fa-sticky-note"></i>
+                  Catatan
+                </button>
+                <button class="btn btn-pay" id="btnBayar">
+                  <i class="fas fa-credit-card"></i>
+                  Bayar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Mobile Cart Toggle -->
+    <button class="cart-toggle d-md-none" id="cartToggle">
+      <i class="fas fa-shopping-cart"></i>
+    </button>
+
+    <!-- Mobile Bottom Nav -->
+    <nav class="mobile-nav d-md-none">
+      <a href="../index.html" class="mobile-nav-item">
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="kasir.html" class="mobile-nav-item active">
+        <i class="fas fa-cash-register"></i>
+        <span>Kasir</span>
+      </a>
+      <a href="produk.html" class="mobile-nav-item">
+        <i class="fas fa-box"></i>
+        <span>Produk</span>
+      </a>
+      <a href="riwayat.html" class="mobile-nav-item">
+        <i class="fas fa-history"></i>
+        <span>Riwayat</span>
+      </a>
+      <a href="setting.html" class="mobile-nav-item">
+        <i class="fas fa-cog"></i>
+        <span>Setting</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- Payment Modal -->
+  <div class="modal-overlay" id="paymentModal">
+    <div class="modal" style="max-width: 500px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Pembayaran</h3>
+        <button class="modal-close" id="closePaymentModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Payment Methods -->
+        <div class="payment-methods">
+          <div class="payment-method active" data-method="cash">
+            <i class="fas fa-money-bill-wave"></i>
+            <span>Tunai</span>
+          </div>
+          <div class="payment-method" data-method="transfer">
+            <i class="fas fa-exchange-alt"></i>
+            <span>Transfer</span>
+          </div>
+          <div class="payment-method" data-method="qris">
+            <i class="fas fa-qrcode"></i>
+            <span>QRIS</span>
+          </div>
+        </div>
+
+        <!-- Amount Display -->
+        <div class="amount-display">
+          <div class="amount-label">Total Tagihan</div>
+          <div class="amount-value" id="paymentTotal">Rp 0</div>
+        </div>
+
+        <!-- Quick Amounts -->
+        <div class="quick-amounts">
+          <button class="quick-amount" data-amount="exact">Uang Pas</button>
+          <button class="quick-amount" data-amount="50000">Rp 50.000</button>
+          <button class="quick-amount" data-amount="100000">Rp 100.000</button>
+        </div>
+
+        <!-- Input Amount -->
+        <div class="form-group">
+          <label class="form-label">Jumlah Bayar</label>
+          <input type="text" class="form-input" id="paymentAmount" placeholder="0" readonly style="font-size: 1.5rem; text-align: center; font-weight: 700;">
+        </div>
+
+        <!-- Change Display -->
+        <div class="amount-display" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);">
+          <div class="amount-label">Kembalian</div>
+          <div class="amount-value" id="paymentChange" style="color: var(--success);">Rp 0</div>
+        </div>
+
+        <!-- Numpad -->
+        <div class="numpad">
+          <button class="numpad-btn" data-num="7">7</button>
+          <button class="numpad-btn" data-num="8">8</button>
+          <button class="numpad-btn" data-num="9">9</button>
+          <button class="numpad-btn" data-num="4">4</button>
+          <button class="numpad-btn" data-num="5">5</button>
+          <button class="numpad-btn" data-num="6">6</button>
+          <button class="numpad-btn" data-num="1">1</button>
+          <button class="numpad-btn" data-num="2">2</button>
+          <button class="numpad-btn" data-num="3">3</button>
+          <button class="numpad-btn action" data-action="clear">C</button>
+          <button class="numpad-btn" data-num="0">0</button>
+          <button class="numpad-btn action" data-action="backspace">
+            <i class="fas fa-backspace"></i>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelPayment">Batal</button>
+        <button class="btn btn-success" id="btnConfirmPayment">
+          <i class="fas fa-check"></i>
+          Proses Pembayaran
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual Input Modal -->
+  <div class="modal-overlay" id="manualModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Input Produk Manual</h3>
+        <button class="modal-close" id="closeManualModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Nama Produk</label>
+          <input type="text" class="form-input" id="manualName" placeholder="Masukkan nama produk">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Harga Jual</label>
+          <input type="number" class="form-input" id="manualPrice" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Harga Modal (opsional)</label>
+          <input type="number" class="form-input" id="manualCost" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Jumlah</label>
+          <input type="number" class="form-input" id="manualQty" value="1" min="1">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelManual">Batal</button>
+        <button class="btn btn-primary" id="btnAddManual">
+          <i class="fas fa-plus"></i>
+          Tambahkan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="../js/core/firebase-config.js"></script>
+  <script src="../js/core/utils.js"></script>
+  <script src="../js/core/auth.js"></script>
+  <script src="../js/modules/kasir/kasir-main.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      Kasir.init();
+    });
+  </script>
+</body>
+</html>
