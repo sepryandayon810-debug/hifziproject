@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#6366f1">
+  <title>WebPOS - Produk</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="../css/style.css">
+  
+  <style>
+    .produk-toolbar {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .produk-search {
+      flex: 1;
+      min-width: 250px;
+      position: relative;
+    }
+
+    .produk-search i {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+    }
+
+    .produk-search input {
+      width: 100%;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      background: var(--bg-card);
+      font-size: 0.875rem;
+    }
+
+    .produk-filters {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .filter-select {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      background: var(--bg-card);
+      font-size: 0.875rem;
+      min-width: 150px;
+    }
+
+    .produk-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .produk-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .produk-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border-color);
+      overflow: hidden;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .produk-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .produk-image {
+      aspect-ratio: 1;
+      background: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .produk-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .produk-image i {
+      font-size: 3rem;
+      color: var(--text-muted);
+    }
+
+    .produk-status {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 50px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .produk-status.active {
+      background: var(--success);
+      color: white;
+    }
+
+    .produk-status.inactive {
+      background: var(--text-muted);
+      color: white;
+    }
+
+    .produk-stock-badge {
+      position: absolute;
+      bottom: 0.75rem;
+      left: 0.75rem;
+      padding: 0.25rem 0.75rem;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      border-radius: var(--radius-md);
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .produk-info {
+      padding: 1rem;
+    }
+
+    .produk-name {
+      font-weight: 600;
+      font-size: 0.9375rem;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .produk-code {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .produk-price {
+      font-weight: 700;
+      color: var(--primary);
+      font-size: 1rem;
+    }
+
+    .produk-actions {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+    }
+
+    .produk-actions .btn {
+      flex: 1;
+      padding: 0.5rem;
+      font-size: 0.75rem;
+    }
+
+    /* Table View */
+    .produk-table-container {
+      overflow-x: auto;
+    }
+
+    /* Modal Form */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 640px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .image-upload {
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .image-upload:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .image-upload i {
+      font-size: 2rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .image-preview {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: var(--radius-md);
+      margin-top: 1rem;
+    }
+
+    .stock-input-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .stock-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border-color);
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stock-btn:hover {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <div class="logo-icon">
+            <i class="fas fa-cash-register"></i>
+          </div>
+          <span class="logo-text">WebPOS</span>
+        </div>
+      </div>
+      
+      <button class="menu-toggle" id="menuToggle">
+        <i class="fas fa-chevron-left"></i>
+      </button>
+      
+      <div class="sidebar-search">
+        <div class="search-input-wrapper">
+          <i class="fas fa-search"></i>
+          <input type="text" class="search-input" id="menuSearch" placeholder="Cari menu...">
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <div class="nav-section-title">Utama</div>
+          <ul class="nav-menu">
+            <li class="nav-item">
+              <a href="../index.html" class="nav-link" data-menu="dashboard">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="kasir.html" class="nav-link" data-menu="kasir">
+                <i class="fas fa-cash-register"></i>
+                <span>Kasir</span>
+              </a>
+            </li>
+            <li class="nav-item nav-dropdown open" data-dropdown>
+              <div class="nav-link nav-dropdown-toggle active" data-menu="produk">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <i class="fas fa-box"></i>
+                  <span>Produk</span>
+                </div>
+                <i class="fas fa-chevron-down dropdown-arrow"></i>
+              </div>
+              <ul class="nav-submenu">
+                <li><a href="produk.html" class="nav-link active"><span>Daftar Produk</span></a></li>
+                <li><a href="produk-kategori.html" class="nav-link"><span>Kategori</span></a></li>
+                <li><a href="produk-stok.html" class="nav-link"><span>Stok Masal</span></a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="user-profile" id="userProfile">
+          <div class="user-avatar" id="userAvatar">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="user-info">
+            <div class="user-name" id="userName">Loading...</div>
+            <div class="user-role" id="userRole">-</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Header -->
+      <header class="main-header">
+        <div class="header-left">
+          <button class="btn-icon d-md-none" id="mobileMenuToggle">
+            <i class="fas fa-bars"></i>
+          </button>
+          <h1 class="header-title">Daftar Produk</h1>
+        </div>
+        
+        <div class="header-actions">
+          <button class="btn btn-secondary" id="btnImport">
+            <i class="fas fa-file-import"></i>
+            <span class="d-none d-md-inline">Import</span>
+          </button>
+          <button class="btn btn-secondary" id="btnExport">
+            <i class="fas fa-file-export"></i>
+            <span class="d-none d-md-inline">Export</span>
+          </button>
+          <button class="btn btn-primary" id="btnAddProduk">
+            <i class="fas fa-plus"></i>
+            <span class="d-none d-md-inline">Tambah Produk</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <!-- Toolbar -->
+        <div class="produk-toolbar">
+          <div class="produk-search">
+            <i class="fas fa-search"></i>
+            <input type="text" id="searchProduk" placeholder="Cari produk berdasarkan nama atau kode...">
+          </div>
+          
+          <div class="produk-filters">
+            <select class="filter-select" id="filterKategori">
+              <option value="">Semua Kategori</option>
+            </select>
+            
+            <select class="filter-select" id="filterStatus">
+              <option value="">Semua Status</option>
+              <option value="active">Aktif</option>
+              <option value="inactive">Nonaktif</option>
+            </select>
+            
+            <div class="view-toggle">
+              <button class="view-btn active" data-view="grid" title="Grid View">
+                <i class="fas fa-th-large"></i>
+              </button>
+              <button class="view-btn" data-view="list" title="List View">
+                <i class="fas fa-list"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="produk-grid" id="produkGrid">
+          <!-- Products will be loaded here -->
+          <div class="produk-card skeleton" style="height: 280px;"></div>
+          <div class="produk-card skeleton" style="height: 280px;"></div>
+          <div class="produk-card skeleton" style="height: 280px;"></div>
+          <div class="produk-card skeleton" style="height: 280px;"></div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="flex justify-between items-center mt-4">
+          <span class="text-muted" style="font-size: 0.875rem;" id="showingText">Menampilkan 0 produk</span>
+          <div class="flex gap-2" id="pagination">
+            <!-- Pagination buttons -->
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Mobile Bottom Nav -->
+    <nav class="mobile-nav d-md-none">
+      <a href="../index.html" class="mobile-nav-item">
+        <i class="fas fa-home"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="kasir.html" class="mobile-nav-item">
+        <i class="fas fa-cash-register"></i>
+        <span>Kasir</span>
+      </a>
+      <a href="produk.html" class="mobile-nav-item active">
+        <i class="fas fa-box"></i>
+        <span>Produk</span>
+      </a>
+      <a href="riwayat.html" class="mobile-nav-item">
+        <i class="fas fa-history"></i>
+        <span>Riwayat</span>
+      </a>
+      <a href="setting.html" class="mobile-nav-item">
+        <i class="fas fa-cog"></i>
+        <span>Setting</span>
+      </a>
+    </nav>
+  </div>
+
+  <!-- Add/Edit Product Modal -->
+  <div class="modal-overlay" id="produkModal">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Tambah Produk</h3>
+        <button class="modal-close" id="closeProdukModal">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="produkForm">
+          <input type="hidden" id="produkId">
+          
+          <!-- Image Upload -->
+          <div class="form-group">
+            <label class="form-label">Gambar Produk</label>
+            <div class="image-upload" id="imageUpload">
+              <i class="fas fa-cloud-upload-alt"></i>
+              <p>Klik untuk upload gambar</p>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">atau drag & drop</p>
+              <input type="file" id="produkImage" accept="image/*" style="display: none;">
+              <img id="imagePreview" class="image-preview" style="display: none;">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label form-label-required">Nama Produk</label>
+              <input type="text" class="form-input" id="produkName" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Kode Produk</label>
+              <input type="text" class="form-input" id="produkCode" placeholder="Auto-generated">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label form-label-required">Kategori</label>
+              <select class="form-select" id="produkKategori" required>
+                <option value="">Pilih Kategori</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Satuan</label>
+              <select class="form-select" id="produkUnit">
+                <option value="pcs">Pcs</option>
+                <option value="kg">Kg</option>
+                <option value="gram">Gram</option>
+                <option value="liter">Liter</option>
+                <option value="meter">Meter</option>
+                <option value="pack">Pack</option>
+                <option value="box">Box</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label form-label-required">Harga Modal</label>
+              <div class="input-group">
+                <span class="input-group-text">Rp</span>
+                <input type="number" class="form-input" id="produkCost" required min="0">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label form-label-required">Harga Jual</label>
+              <div class="input-group">
+                <span class="input-group-text">Rp</span>
+                <input type="number" class="form-input" id="produkPrice" required min="0">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Stok Awal</label>
+              <div class="stock-input-group">
+                <button type="button" class="stock-btn" onclick="Produk.adjustStock(-1)">-</button>
+                <input type="number" class="form-input" id="produkStock" value="0" min="0" style="text-align: center;">
+                <button type="button" class="stock-btn" onclick="Produk.adjustStock(1)">+</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Stok Minimum</label>
+              <input type="number" class="form-input" id="produkMinStock" value="5" min="0">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Deskripsi</label>
+            <textarea class="form-textarea" id="produkDesc" rows="3"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-check">
+              <input type="checkbox" class="form-check-input" id="produkStatus" checked>
+              <span class="form-check-label">Produk Aktif</span>
+            </label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" id="btnCancelProduk">Batal</button>
+        <button type="button" class="btn btn-primary" id="btnSaveProduk">
+          <i class="fas fa-save"></i>
+          Simpan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="../js/core/firebase-config.js"></script>
+  <script src="../js/core/utils.js"></script>
+  <script src="../js/core/auth.js"></script>
+  <script src="../js/modules/produk/produk-main.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      Produk.init();
+    });
+  </script>
+</body>
+</html>
